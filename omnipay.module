@@ -1,0 +1,6 @@
+<?php
+
+/**
+ * @file
+ * Omnipay integration to PaymentMethod Plugin.
+ */

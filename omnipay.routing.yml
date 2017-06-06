@@ -1,0 +1,36 @@
+omnipay.paypal.redirect.success:
+  path: '/omnipay/paypal/redirect/success/{payment}'
+  defaults:
+    _controller: 'Drupal\omnipay\Controller\PayPal\Redirect::execute'
+    _title: 'Pay Pal (Omnipay) Payment Redirect'
+  requirements:
+    _custom_access: '\Drupal\omnipay\Controller\PayPal\Redirect::access'
+omnipay.paypal.redirect.cancel:
+  path: '/omnipay/paypal/redirect/cancel/{payment}'
+  defaults:
+    _controller: 'Drupal\omnipay\Controller\PayPal\Redirect::cancel'
+    _title: 'Pay Pal (Omnipay) Payment Redirect'
+  requirements:
+    _permission: 'access content'
+omnipay.paypal.webhook:
+  path: '/omnipay/paypal/webhook/{payment_method_id}'
+  defaults:
+    _controller: 'Drupal\omnipay\Controller\PayPal\Webhook::execute'
+    _title: 'Pay Pal (Omnipay) Payment Webhook'
+  requirements:
+    _custom_access: '\Drupal\omnipay\Controller\PayPal\Webhook::access'
+
+omnipay.sagepay.redirect.success:
+  path: '/omnipay/sagepay/success/{payment}'
+  defaults:
+    _controller: 'Drupal\omnipay\Controller\SagePay\Webhook::execute'
+    _title: 'Sage Pay (Omnipay) Payment Webhook'
+  requirements:
+    _custom_access: '\Drupal\omnipay\Controller\SagePay\Webhook::access'
+omnipay.paypal.redirect.notify:
+  path: '/omnipay/sagepay/notify'
+  defaults:
+    _controller: 'Drupal\omnipay\Controller\SagePay\Webhook::notify'
+    _title: 'Sage Pay (Omnipay) Notify'
+  requirements:
+    _permission: 'access content'

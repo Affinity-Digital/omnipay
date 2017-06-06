@@ -1,0 +1,6 @@
+{
+	"type" : "drupal-module",
+	"require" : {
+		"omnipay/omnipay" : "^2.0"
+	}
+}

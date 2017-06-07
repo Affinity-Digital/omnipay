@@ -20,4 +20,28 @@ class PayPalStandard extends PayPalBasic {
     return 'PayPal_Rest';
   }
 
+  /**
+   * {@inheritdoc}
+   */
+  public function getWebhookUrl() {
+    $configuration = $this->getPluginDefinition();
+    list(, $id) = \explode(':', $configuration['id']);
+    return self::webhookUrl($id);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getWebhookId() {
+    $configuration = $this->getPluginDefinition();
+    return $configuration['webhookId'];
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getApiContext($type) {
+    return self::apiContext($this->getPluginDefinition(), $type);
+  }
+
 }

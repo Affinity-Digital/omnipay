@@ -13,13 +13,6 @@ use Drupal\payment\Plugin\Payment\Method\PaymentMethodRefundPaymentInterface;
 abstract class AbstractPaymentMethodBase extends PaymentMethodBase implements PaymentMethodRefundPaymentInterface, PaymentMethodCapturePaymentInterface {
 
   /**
-   * The wrapped Omnipay gateway.
-   *
-   * @var \Omnipay\Common\AbstractGateway
-   */
-  protected $gateway;
-
-  /**
    * {@inheritdoc}
    */
   public function setPayment(PaymentInterface $payment) {

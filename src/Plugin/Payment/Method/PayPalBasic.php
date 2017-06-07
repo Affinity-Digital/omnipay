@@ -37,12 +37,22 @@ abstract class PayPalBasic extends GatewayFactoryAbstractPaymentMethodBase {
   abstract public function getWebhookId();
 
   /**
+   * Get the current API Context.
+   *
    * @param string $type
+   *   Pal Pay context type.
    *
    * @return \PayPal\Rest\ApiContext
+   *   Current API Context.
    */
   abstract public function getApiContext($type);
 
+  /**
+   * Set Payment Id.
+   *
+   * @param string $paymentId
+   *   New Payment Id.
+   */
   private function setPaymentId($paymentId) {
     $this->configuration['paymentID'] = $paymentId;
     $this->getPayment()->save();
@@ -83,7 +93,6 @@ abstract class PayPalBasic extends GatewayFactoryAbstractPaymentMethodBase {
         if ($currency != self::PAYPAL_DEFAULT_CURRENCY) {
           // This is the second time we are changing the currency which means
           // that our line items have mixed currencies. This aion't gonna work!
-
           // TODO: clarify with the payment maintainer how we should handle this.
           drupal_set_message($this->t('Mixed currencies detected which is not yet supported.'), 'error');
           return new OperationResult(NULL);
@@ -123,7 +132,8 @@ abstract class PayPalBasic extends GatewayFactoryAbstractPaymentMethodBase {
       $this->setPaymentId($payment->getId());
       $url = Url::fromUri($payment->getApprovalLink());
       $response = new Response($url);
-    } catch (\Exception $ex) {
+    }
+    catch (\Exception $ex) {
       // TODO: clarify with the payment maintainer how we should handle Exceptions.
       $response = NULL;
     }

@@ -81,7 +81,8 @@ class PayPalExpress extends PayPalBasic {
     $values = NestedArray::getValue($values, $parents);
     $this->configuration['clientId'] = $values['paypal']['clientId'];
     $this->configuration['clientSecret'] = $values['paypal']['clientSecret'];
-    $this->configuration['webhookId'] = $this->updateWebhook($this->configuration, $form_state->getValue('id'));
+    $this->configuration['webhookId'] =
+      $this->updateWebhook($this->configuration, $form_state->getValue('id'));
   }
 
   /**
@@ -90,18 +91,16 @@ class PayPalExpress extends PayPalBasic {
    * @return string
    */
   private function updateWebhook($configuration, $id) {
-    $webhookId  = $this->getWebhookId();
+    $webhookId = $this->getWebhookId();
     $webhookUrl = PayPalExpressMethod::webhookUrl($id);
 
     // Use the Rest interface.
     $gateway = Omnipay::create('PayPal_Rest');
-    $gateway->initialize(array(
+    $gateway->initialize([
       'clientId' => $this->configuration['clientId'],
       'secret'   => $this->configuration['clientSecret'],
       'testMode' => !$this->getProduction(),
-    ));
-
-    var_dump($settings);
+    ]);
 
     $apiContext = PayPalExpressMethod::apiContext($configuration, PayPalExpressMethod::PAYPAL_CONTEXT_TYPE_ADMIN);
     if (!empty($webhookId)) {
@@ -116,18 +115,20 @@ class PayPalExpress extends PayPalBasic {
           $patchRequest->addPatch($patch);
           try {
             $webhook->update($patchRequest, $apiContext);
-          } catch (PayPalConnectionException $ppex) {
+          }
+          catch (PayPalConnectionException $ppex) {
             $this->handlePayPalException('Error updating webhook for PayPal payment method:', $ppex);
           }
         }
-      } catch (\Exception $ex) {
+      }
+      catch (\Exception $ex) {
         $webhookId = '';
       }
     }
 
     if (empty($webhookId)) {
       try {
-        // Create a new webhook
+        // Create a new webhook.
         $webhook = new Webhook();
         $webhook->setUrl($webhookUrl);
         $eventType = new WebhookEventType();
@@ -135,9 +136,11 @@ class PayPalExpress extends PayPalBasic {
         $webhook->setEventTypes([$eventType]);
         $webhook = $webhook->create($apiContext);
         $webhookId = $webhook->getId();
-      } catch (PayPalConnectionException $ppex) {
+      }
+      catch (PayPalConnectionException $ppex) {
         $this->handlePayPalException('Error creating webhook for PayPal payment method:', $ppex);
-      } catch (\Exception $ex) {
+      }
+      catch (\Exception $ex) {
         drupal_set_message($this->t('Something went wrong when creating the webhook for your PayPal Express payment method.'), 'error');
       }
     }
@@ -148,7 +151,7 @@ class PayPalExpress extends PayPalBasic {
    * @param string $msg
    * @param PayPalConnectionException $ppex
    */
-  private function handlePayPalException($msg, $ppex) {
+  private function handlePayPalException($msg, PayPalConnectionException $ppex) {
     $data = \GuzzleHttp\json_decode($ppex->getData());
     drupal_set_message($this->t($msg), 'error');
     foreach ($data->details as $detail) {
@@ -159,7 +162,7 @@ class PayPalExpress extends PayPalBasic {
   }
 
   /**
-   * @inheritDoc
+   * {@inheritdoc}
    */
   public function getDerivativeConfiguration() {
     return parent::getDerivativeConfiguration() + [

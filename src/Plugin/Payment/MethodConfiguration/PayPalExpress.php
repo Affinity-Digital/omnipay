@@ -11,7 +11,7 @@ use Omnipay\Omnipay;
  * Provides the configuration for the PayPal Express payment method plugin.
  *
  * @PaymentMethodConfiguration(
- *   description = @Translation("PayPal Express (Omnipay) payment method type."),
+ *   description = @Translation("PayPal Express payment method type."),
  *   id = "omnipay:paypal_express",
  *   label = @Translation("PayPal Express (Omnipay)")
  * )

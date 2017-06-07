@@ -6,12 +6,12 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Provides the configuration for the PayPal Rest payment method plugin.
+ * Provides the configuration for the PayPal Standard payment method plugin.
  *
  * @PaymentMethodConfiguration(
- *   description = @Translation("PayPal Rest (Omnipay) payment method type."),
+ *   description = @Translation("PayPal Standard payment method type."),
  *   id = "omnipay:paypal_standard",
- *   label = @Translation("PayPal Rest (Omnipay)")
+ *   label = @Translation("PayPal Standard (Omnipay)")
  * )
  */
 class PayPalStandard extends PayPalBasic {

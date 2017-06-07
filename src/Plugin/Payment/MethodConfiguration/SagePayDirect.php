@@ -3,10 +3,10 @@
 namespace Drupal\omnipay\Plugin\Payment\MethodConfiguration;
 
 /**
- * Provides the configuration for the SagePay Standard payment method plugin.
+ * Provides the configuration for the SagePay Direct payment method plugin.
  *
  * @PaymentMethodConfiguration(
- *   description = @Translation("SagePay Direct (Omnipay) payment method type."),
+ *   description = @Translation("SagePay Direct payment method type."),
  *   id = "omnipay:sagepay_direct",
  *   label = @Translation("SagePay Direct (Omnipay)")
  * )

@@ -11,7 +11,7 @@ class SagePayDirectDeriver extends OmniPayDeriver {
    * {@inheritdoc}
    */
   protected function getId() {
-    return 'sagepay_direct';
+    return 'omnipay_sagepay_direct';
   }
 
 }

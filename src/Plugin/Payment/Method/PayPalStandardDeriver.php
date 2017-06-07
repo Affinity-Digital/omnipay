@@ -5,13 +5,13 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
 /**
  * Derives payment method plugin definitions based on configuration entities.
  */
-class PayPalStandardDeriver extends PayPalBasicDeriver {
+class PayPalStandardDeriver extends OmniPayDeriver {
 
   /**
    * {@inheritdoc}
    */
   protected function getId() {
-    return 'paypal_rest';
+    return 'omnipay_paypal_standard';
   }
 
 }

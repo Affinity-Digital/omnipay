@@ -12,7 +12,7 @@ use Omnipay\Omnipay;
  *
  * @PaymentMethodConfiguration(
  *   description = @Translation("PayPal Express payment method type."),
- *   id = "omnipay:paypal_express",
+ *   id = "omnipay_paypal_express",
  *   label = @Translation("PayPal Express (Omnipay)")
  * )
  */
@@ -98,7 +98,7 @@ class PayPalExpress extends PayPalBasic {
     $gateway->initialize(array(
       'clientId' => $this->configuration['clientId'],
       'secret'   => $this->configuration['clientSecret'],
-      'testMode' => true, // Or false when you are ready for live transactions
+      'testMode' => !$this->getProduction(),
     ));
 
     var_dump($settings);

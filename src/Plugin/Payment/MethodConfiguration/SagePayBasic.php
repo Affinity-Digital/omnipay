@@ -58,7 +58,7 @@ class SagePayBasic extends Basic {
    * {@inheritdoc}
    */
   public function getDerivativeConfiguration() {
-    return parent::getDerivativeConfiguration() + [
+    return [
       'vendor_name' => $this->getVendorName(),
       'referrer_id' => $this->getReferrerId(),
     ];

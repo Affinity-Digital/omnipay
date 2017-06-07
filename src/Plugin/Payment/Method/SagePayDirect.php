@@ -7,7 +7,7 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
  *
  * @PaymentMethod(
  *   deriver = "\Drupal\omnipay\Plugin\Payment\Method\SagePayDirectDeriver",
- *   id = "omnipay",
+ *   id = "omnipay_sagepay_direct",
  *   operations_provider = "\Drupal\omnipay\Plugin\Payment\Method\SagePayDirectOperationsProvider",
  * )
  */

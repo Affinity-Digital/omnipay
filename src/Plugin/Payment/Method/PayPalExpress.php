@@ -10,7 +10,7 @@ use Drupal\Core\Url;
  *
  * @PaymentMethod(
  *   deriver = "\Drupal\omnipay\Plugin\Payment\Method\PayPalExpressDeriver",
- *   id = "omnipay",
+ *   id = "omnipay_paypal_express",
  *   operations_provider = "\Drupal\omnipay\Plugin\Payment\Method\PayPalExpressOperationsProvider",
  * )
  */

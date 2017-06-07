@@ -7,7 +7,7 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
  *
  * @PaymentMethod(
  *   deriver = "\Drupal\omnipay\Plugin\Payment\Method\PayPalStandardDeriver",
- *   id = "omnipay",
+ *   id = "omnipay_paypal_standard",
  *   operations_provider = "\Drupal\omnipay\Plugin\Payment\Method\PayPalStandardOperationsProvider",
  * )
  */

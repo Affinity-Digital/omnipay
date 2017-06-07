@@ -11,7 +11,7 @@ class SagePayServerDeriver extends OmniPayDeriver {
    * {@inheritdoc}
    */
   protected function getId() {
-    return 'sagepay_server';
+    return 'omnipay_sagepay_server';
   }
 
 }

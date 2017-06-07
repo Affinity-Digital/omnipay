@@ -7,7 +7,7 @@ namespace Drupal\omnipay\Plugin\Payment\MethodConfiguration;
  *
  * @PaymentMethodConfiguration(
  *   description = @Translation("SagePay Server payment method type."),
- *   id = "omnipay:sagepay_server",
+ *   id = "omnipay_sagepay_server",
  *   label = @Translation("SagePay Server (Omnipay)")
  * )
  */

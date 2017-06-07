@@ -10,7 +10,7 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @PaymentMethodConfiguration(
  *   description = @Translation("PayPal Standard payment method type."),
- *   id = "omnipay:paypal_standard",
+ *   id = "omnipay_paypal_standard",
  *   label = @Translation("PayPal Standard (Omnipay)")
  * )
  */

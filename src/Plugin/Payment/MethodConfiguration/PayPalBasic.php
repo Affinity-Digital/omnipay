@@ -119,7 +119,7 @@ abstract class PayPalBasic extends Basic {
    * {@inheritdoc}
    */
   public function getDerivativeConfiguration() {
-    return parent::getDerivativeConfiguration() + [
+    return [
       'production' => $this->isProduction(),
       'loglevel' => $this->getLogLevel(),
       'logging' => [

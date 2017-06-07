@@ -28,6 +28,15 @@ class SagePayBasic extends Basic {
       '#required' => TRUE,
     ];
 
+    $element['sagepay']['referrer_id'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Referrer Id'),
+      '#description' => $this->t('Also known as Partner Id'),
+      '#default_value' => $this->getReferrerId(),
+      '#maxlength' => 255,
+      '#required' => TRUE,
+    ];
+
     return $element;
   }
 
@@ -40,9 +49,9 @@ class SagePayBasic extends Basic {
     $parents = $form['plugin_form']['sagepay']['#parents'];
     array_pop($parents);
     $values = $form_state->getValues();
-    $id = $values['id'];
     $values = NestedArray::getValue($values, $parents);
     $this->setVendorName($values['sagepay']['vendor-name']);
+    $this->setReferrerId($values['sagepay']['referrer_id']);
   }
 
   /**
@@ -51,6 +60,7 @@ class SagePayBasic extends Basic {
   public function getDerivativeConfiguration() {
     return parent::getDerivativeConfiguration() + [
       'vendor_name' => $this->getVendorName(),
+      'referrer_id' => $this->getReferrerId(),
     ];
   }
 
@@ -75,6 +85,30 @@ class SagePayBasic extends Basic {
    */
   public function setVendorName($vendorName) {
     $this->configuration['vendor_name'] = $vendorName;
+    return $this;
+  }
+
+  /**
+   * Gets the referrer_id of this configuration.
+   *
+   * @return string
+   *   Configured Referrer Id.
+   */
+  public function getReferrerId() {
+    return isset($this->configuration['referrer_id']) ? $this->configuration['referrer_id'] : '';
+  }
+
+  /**
+   * Sets the referrer_id of this configuration.
+   *
+   * @param string $referrerId
+   *   New Referrer Id.
+   *
+   * @return \Drupal\omnipay\Plugin\Payment\MethodConfiguration\SagePayBasic
+   *   Fluent interface.
+   */
+  public function setReferrerId($referrerId) {
+    $this->configuration['referrer_id'] = $referrerId;
     return $this;
   }
 

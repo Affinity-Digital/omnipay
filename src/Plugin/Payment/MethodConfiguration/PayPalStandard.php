@@ -10,11 +10,11 @@ use Drupal\Core\Form\FormStateInterface;
  *
  * @PaymentMethodConfiguration(
  *   description = @Translation("PayPal Rest (Omnipay) payment method type."),
- *   id = "omnipay:paypal_rest",
+ *   id = "omnipay:paypal_standard",
  *   label = @Translation("PayPal Rest (Omnipay)")
  * )
  */
-class PayPalRest extends PayPalBasic {
+class PayPalStandard extends PayPalBasic {
 
   /**
    * Gets the email of this configuration.

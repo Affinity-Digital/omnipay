@@ -6,12 +6,12 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
  * PayPal Standard payment method.
  *
  * @PaymentMethod(
- *   deriver = "\Drupal\omnipay\Plugin\Payment\Method\PayPalRestDeriver",
+ *   deriver = "\Drupal\omnipay\Plugin\Payment\Method\PayPalStandardDeriver",
  *   id = "omnipay",
- *   operations_provider = "\Drupal\omnipay\Plugin\Payment\Method\PayPalRestOperationsProvider",
+ *   operations_provider = "\Drupal\omnipay\Plugin\Payment\Method\PayPalStandardOperationsProvider",
  * )
  */
-class PayPalRest extends PayPalBasic {
+class PayPalStandard extends PayPalBasic {
 
   /**
    * {@inheritdoc}

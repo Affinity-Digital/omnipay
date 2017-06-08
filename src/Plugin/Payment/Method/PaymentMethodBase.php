@@ -84,7 +84,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     $containerClient = $container->get('http_client');
 
     // Onmipay 2.x Client class is \Guzzle\Http\ClientInterface.
-    if ($containerClient instanceof \Guzzle\Http\ClientInterface) {
+    if ($containerClient instanceof ClientInterface) {
       $client = $containerClient;
     }
     else {

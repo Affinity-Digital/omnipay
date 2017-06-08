@@ -81,6 +81,18 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
+    $containerClient = $container->get('http_client');
+
+    // Onmipay 2.x Client class is \Guzzle\Http\ClientInterface.
+    if ($containerClient instanceof \Guzzle\Http\ClientInterface) {
+      $client = $containerClient;
+    }
+    else {
+      $config = $containerClient->getConfig();
+      // Create a new instance and use the passed instance's configuration.
+      $client = new Client('', $config);
+    }
+
     return new static(
       $configuration,
       $plugin_id,
@@ -89,7 +101,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $container->get('payment.event_dispatcher'),
       $container->get('token'),
       $container->get('plugin.manager.payment.status'),
-      new Client(),
+      $client,
       $container->get('request_stack')->getCurrentRequest()
     );
   }

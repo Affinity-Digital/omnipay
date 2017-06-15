@@ -20,7 +20,7 @@ class PayPalExpress extends PayPalBasic {
    * {@inheritdoc}
    */
   public function getGatewayName() {
-    return 'PayPal_Express';
+    return 'PayPal_Rest';
   }
 
   /**

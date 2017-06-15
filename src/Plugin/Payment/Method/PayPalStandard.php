@@ -17,7 +17,7 @@ class PayPalStandard extends PayPalBasic {
    * {@inheritdoc}
    */
   public function getGatewayName() {
-    return 'PayPal_Rest';
+    return 'PayPal_Pro';
   }
 
   /**

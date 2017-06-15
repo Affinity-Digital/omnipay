@@ -10,17 +10,7 @@ use Drupal\omnipay\Plugin\Payment\Method\PayPalBasic as PayPalBasicMethod;
 /**
  * Abstract class for PayPal payment method configurations.
  */
-abstract class PayPalBasic extends Basic {
-
-  /**
-   * Gets the setting for the production server.
-   *
-   * @return bool
-   *   Whether it is the production server or not.
-   */
-  public function isProduction() {
-    return !empty($this->configuration['production']);
-  }
+abstract class PayPalBasic extends OmniPayBasic{
 
   /**
    * Gets the setting for logging the PayPal API traffic.
@@ -53,11 +43,6 @@ abstract class PayPalBasic extends Basic {
 
     $element['paypal'] = [
       '#type' => 'container',
-    ];
-    $element['paypal']['production'] = [
-      '#type' => 'checkbox',
-      '#title' => $this->t('Production Server'),
-      '#default_value' => $this->isProduction(),
     ];
     $element['paypal']['logging'] = [
       '#type' => 'fieldset',
@@ -107,7 +92,6 @@ abstract class PayPalBasic extends Basic {
     array_pop($parents);
     $values = $form_state->getValues();
     $values = NestedArray::getValue($values, $parents);
-    $this->configuration['production'] = !empty($values['paypal']['production']);
     $this->configuration['loglevel'] = $values['paypal']['logging']['loglevel'];
     $this->configuration['logging'][PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_ADMIN] = !empty($values['paypal']['logging'][PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_ADMIN]);
     $this->configuration['logging'][PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_CREATE] = !empty($values['paypal']['logging'][PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_CREATE]);
@@ -119,8 +103,7 @@ abstract class PayPalBasic extends Basic {
    * {@inheritdoc}
    */
   public function getDerivativeConfiguration() {
-    return [
-      'production' => $this->isProduction(),
+  	return parent::getDerivativeConfiguration() + [
       'loglevel' => $this->getLogLevel(),
       'logging' => [
         PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_ADMIN => $this->isLogging(PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_ADMIN),

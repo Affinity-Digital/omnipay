@@ -9,7 +9,7 @@ use Drupal\payment\Plugin\Payment\MethodConfiguration\Basic;
 /**
  * Abstract class for SagePay payment method configurations.
  */
-class SagePayBasic extends Basic {
+class SagePayBasic extends OmniPayBasic {
 
   /**
    * Implements a form API #process callback.
@@ -20,7 +20,8 @@ class SagePayBasic extends Basic {
     $element['sagepay'] = [
       '#type' => 'container',
     ];
-    $element['sagepay']['vendor_name'] = [
+
+    $element['sagepay']['vendor'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Vendor name'),
       '#default_value' => $this->getVendorName(),
@@ -28,7 +29,7 @@ class SagePayBasic extends Basic {
       '#required' => TRUE,
     ];
 
-    $element['sagepay']['referrer_id'] = [
+    $element['sagepay']['referrerId'] = [
       '#type' => 'textfield',
       '#title' => $this->t('Referrer Id'),
       '#description' => $this->t('Also known as Partner Id'),
@@ -50,17 +51,17 @@ class SagePayBasic extends Basic {
     array_pop($parents);
     $values = $form_state->getValues();
     $values = NestedArray::getValue($values, $parents);
-    $this->setVendorName($values['sagepay']['vendor-name']);
-    $this->setReferrerId($values['sagepay']['referrer_id']);
+    $this->setVendorName($values['sagepay']['vendor']);
+    $this->setReferrerId($values['sagepay']['referrerId']);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getDerivativeConfiguration() {
-    return [
-      'vendor_name' => $this->getVendorName(),
-      'referrer_id' => $this->getReferrerId(),
+    return parent::getDerivativeConfiguration() + [
+      'vendor' => $this->getVendorName(),
+      'referrerId' => $this->getReferrerId(),
     ];
   }
 
@@ -71,7 +72,7 @@ class SagePayBasic extends Basic {
    *   Configured Vendor name.
    */
   public function getVendorName() {
-    return isset($this->configuration['vendor_name']) ? $this->configuration['vendor_name'] : '';
+    return isset($this->configuration['vendor']) ? $this->configuration['vendor'] : '';
   }
 
   /**
@@ -84,7 +85,7 @@ class SagePayBasic extends Basic {
    *   Fluent interface.
    */
   public function setVendorName($vendorName) {
-    $this->configuration['vendor_name'] = $vendorName;
+    $this->configuration['vendor'] = $vendorName;
     return $this;
   }
 
@@ -95,7 +96,7 @@ class SagePayBasic extends Basic {
    *   Configured Referrer Id.
    */
   public function getReferrerId() {
-    return isset($this->configuration['referrer_id']) ? $this->configuration['referrer_id'] : '';
+    return isset($this->configuration['referrerId']) ? $this->configuration['referrerId'] : '';
   }
 
   /**
@@ -108,8 +109,9 @@ class SagePayBasic extends Basic {
    *   Fluent interface.
    */
   public function setReferrerId($referrerId) {
-    $this->configuration['referrer_id'] = $referrerId;
+    $this->configuration['referrerId'] = $referrerId;
     return $this;
   }
+
 
 }

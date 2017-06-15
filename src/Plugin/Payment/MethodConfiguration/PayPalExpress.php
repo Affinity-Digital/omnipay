@@ -22,6 +22,7 @@ class PayPalExpress extends PayPalBasic {
    * Gets the client ID of this configuration.
    *
    * @return string
+   *   Configured Client ID.
    */
   public function getClientId() {
     return isset($this->configuration['clientId']) ? $this->configuration['clientId'] : '';
@@ -31,6 +32,7 @@ class PayPalExpress extends PayPalBasic {
    * Gets the client secret of this configuration.
    *
    * @return string
+   *   Configured Client Secret.
    */
   public function getClientSecret() {
     return isset($this->configuration['clientSecret']) ? $this->configuration['clientSecret'] : '';
@@ -40,6 +42,7 @@ class PayPalExpress extends PayPalBasic {
    * Gets the webhook ID of this configuration.
    *
    * @return string
+   *   Configured webhook Id.
    */
   public function getWebhookId() {
     return isset($this->configuration['webhookId']) ? $this->configuration['webhookId'] : '';
@@ -86,11 +89,17 @@ class PayPalExpress extends PayPalBasic {
   }
 
   /**
-   * @param $configuration
-   * @param $id
+   * Update the webhook id value from Pay Pal.
+   *
+   * @param array $configuration
+   *   Current configuration.
+   * @param string $id
+   *   Payment method identifer.
+   *
    * @return string
+   *   New webhook id value.
    */
-  private function updateWebhook($configuration, $id) {
+  private function updateWebhook(array $configuration, $id) {
     $webhookId = $this->getWebhookId();
     $webhookUrl = PayPalExpressMethod::webhookUrl($id);
 
@@ -99,7 +108,7 @@ class PayPalExpress extends PayPalBasic {
     $gateway->initialize([
       'clientId' => $this->configuration['clientId'],
       'secret'   => $this->configuration['clientSecret'],
-      'testMode' => !$this->getProduction(),
+      'testMode' => !$this->isProduction(),
     ]);
 
     $apiContext = PayPalExpressMethod::apiContext($configuration, PayPalExpressMethod::PAYPAL_CONTEXT_TYPE_ADMIN);
@@ -148,8 +157,12 @@ class PayPalExpress extends PayPalBasic {
   }
 
   /**
+   * Pay Pal Exception handler.
+   *
    * @param string $msg
+   *   Message for user.
    * @param PayPalConnectionException $ppex
+   *   Error Context.
    */
   private function handlePayPalException($msg, PayPalConnectionException $ppex) {
     $data = \GuzzleHttp\json_decode($ppex->getData());

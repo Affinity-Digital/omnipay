@@ -11,7 +11,7 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
  *   operations_provider = "\Drupal\omnipay\Plugin\Payment\Method\SagePayDirectOperationsProvider",
  * )
  */
-class SagePayDirect extends GatewayFactoryAbstractPaymentMethodBase {
+class SagePayDirect extends SagePayBase {
 
   /**
    * {@inheritdoc}

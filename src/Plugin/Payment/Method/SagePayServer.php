@@ -2,6 +2,8 @@
 
 namespace Drupal\omnipay\Plugin\Payment\Method;
 
+use Drupal\Core\Url;
+
 /**
  * SagePay Server payment method.
  *
@@ -11,13 +13,36 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
  *   operations_provider = "\Drupal\omnipay\Plugin\Payment\Method\SagePayServerOperationsProvider",
  * )
  */
-class SagePayServer extends GatewayFactoryAbstractPaymentMethodBase {
+class SagePayServer extends SagePayBase {
 
   /**
    * {@inheritdoc}
    */
   public function getGatewayName() {
     return 'SagePay_Server';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguration() {
+
+    $configuration = parent::getConfiguration();
+    $configuration['returnUrl'] = self::webhookUrl();
+
+    return $configuration;
+  }
+
+  /**
+   * Return the fully URL of the redirection page.
+   *
+   * @return string
+   *   Fully qualified URL of the redirection page handler.
+   */
+  public static function webhookUrl() {
+    $webhook = new Url('omnipay.sagepay.redirect.success',
+      [], ['absolute' => TRUE]);
+    return $webhook->toString(TRUE)->getGeneratedUrl();
   }
 
 }

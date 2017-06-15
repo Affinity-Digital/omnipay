@@ -21,7 +21,7 @@ omnipay.paypal.webhook:
     _custom_access: '\Drupal\omnipay\Controller\PayPal\Webhook::access'
 
 omnipay.sagepay.redirect.success:
-  path: '/omnipay/sagepay/success/{payment}'
+  path: '/omnipay/sagepay/success'
   defaults:
     _controller: 'Drupal\omnipay\Controller\SagePay\Webhook::execute'
     _title: 'Sage Pay (Omnipay) Payment Webhook'

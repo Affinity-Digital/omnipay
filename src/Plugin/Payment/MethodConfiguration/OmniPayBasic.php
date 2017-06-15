@@ -5,7 +5,6 @@ namespace Drupal\omnipay\Plugin\Payment\MethodConfiguration;
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\payment\Plugin\Payment\MethodConfiguration\Basic;
-use Drupal\omnipay\Plugin\Payment\Method\PayPalBasic as PayPalBasicMethod;
 
 /**
  * Abstract class for Omnipay payment method configurations.
@@ -60,7 +59,7 @@ abstract class OmniPayBasic extends Basic {
       '#title' => $this->t('Use Production payment services'),
       '#default_value' => $this->isProduction(),
       '#description' =>
-        $this->t('Check this to use production payment services, otherwise test payment services will be used.'),
+      $this->t('Check this to use production payment services, otherwise test payment services will be used.'),
     ];
 
     return $element;

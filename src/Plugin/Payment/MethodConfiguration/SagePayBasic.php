@@ -4,7 +4,6 @@ namespace Drupal\omnipay\Plugin\Payment\MethodConfiguration;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\payment\Plugin\Payment\MethodConfiguration\Basic;
 
 /**
  * Abstract class for SagePay payment method configurations.
@@ -112,6 +111,5 @@ class SagePayBasic extends OmniPayBasic {
     $this->configuration['referrerId'] = $referrerId;
     return $this;
   }
-
 
 }

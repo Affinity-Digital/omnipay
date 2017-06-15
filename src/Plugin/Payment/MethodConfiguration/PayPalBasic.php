@@ -4,13 +4,12 @@ namespace Drupal\omnipay\Plugin\Payment\MethodConfiguration;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\payment\Plugin\Payment\MethodConfiguration\Basic;
 use Drupal\omnipay\Plugin\Payment\Method\PayPalBasic as PayPalBasicMethod;
 
 /**
  * Abstract class for PayPal payment method configurations.
  */
-abstract class PayPalBasic extends OmniPayBasic{
+abstract class PayPalBasic extends OmniPayBasic {
 
   /**
    * Gets the setting for logging the PayPal API traffic.
@@ -103,7 +102,7 @@ abstract class PayPalBasic extends OmniPayBasic{
    * {@inheritdoc}
    */
   public function getDerivativeConfiguration() {
-  	return parent::getDerivativeConfiguration() + [
+    return parent::getDerivativeConfiguration() + [
       'loglevel' => $this->getLogLevel(),
       'logging' => [
         PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_ADMIN => $this->isLogging(PayPalBasicMethod::PAYPAL_CONTEXT_TYPE_ADMIN),

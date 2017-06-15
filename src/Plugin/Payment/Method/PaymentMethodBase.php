@@ -5,6 +5,7 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Utility\Token;
 use Drupal\payment\EventDispatcherInterface;
+use Drupal\payment\OperationResult;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase as GenericPaymentMethodBase;
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface;
 use Guzzle\Http\Client;
@@ -13,6 +14,8 @@ use Omnipay\Common\GatewayFactory;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Omnipay\Common\ItemBag;
+use Omnipay\Common\Item;
 
 /**
  * Provides a basis for payment methods that use Omnipay gateways.
@@ -131,7 +134,39 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public function doExecutePayment() {
-    $request = $this->gateway->purchase($this->getConfiguration());
+    $items = new ItemBag();
+    $totalAmount = 0;
+    $currency = NULL;
+    foreach ($this->getPayment()->getLineItems() as $line_item) {
+      $item = new Item();
+      $item->setPrice($line_item->getAmount());
+      $item->setQuantity($line_item->getQuantity());
+      $item->setDescription($line_item->getDescription());
+      $item->setName($line_item->getName());
+      $items->add($item);
+
+      $totalAmount += $line_item->getTotalAmount();
+      $line_item_currency = $line_item->getCurrencyCode();
+
+      if ($line_item_currency != $currency) {
+        if ($currency != NULL) {
+          // This is the second time we are changing the currency which means
+          // that our line items have mixed currencies. This ain't gonna work!
+          drupal_set_message($this->t('Mixed currencies detected which is not yet supported.'), 'error');
+          return new OperationResult(NULL);
+        }
+        $currency = $line_item_currency;
+      }
+    }
+
+    $configuration = $this->getConfiguration();
+    $configuration['amount'] = $totalAmount;
+    $configuration['currency'] = $currency;
+    // $configuration['card'] = $card; .
+    $configuration['transactionId'] = $this->getTransactionId();
+    $configuration['items'] = $items->all();
+
+    $request = $this->gateway->purchase($configuration);
     $response = $request->send();
     $this->setConfiguration($this->gateway->getParameters());
     $this->getPayment()->save();
@@ -148,6 +183,13 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    */
   public function getSupportedCurrencies() {
     return TRUE;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getTransactionId() {
+    return \Drupal::service('uuid')->generate();
   }
 
 }

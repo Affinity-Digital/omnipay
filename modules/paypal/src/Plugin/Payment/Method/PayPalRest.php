@@ -93,8 +93,11 @@ class PayPalRest extends PayPalBasic {
    *   Local API URL.
    */
   public static function webhookUrl($id) {
-    $webhook = new Url('omnipay.paypal.webhook',
-      ['payment_method_id' => $id], ['absolute' => TRUE]);
+    $webhook = new Url(
+      'omnipay.paypal.webhook',
+      ['payment_method_id' => $id],
+      ['absolute' => TRUE, 'https' => TRUE]
+    );
     return $webhook->toString(TRUE)->getGeneratedUrl();
   }
 

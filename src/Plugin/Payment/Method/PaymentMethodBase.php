@@ -10,12 +10,12 @@ use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase as GenericPaymentMeth
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface;
 use Guzzle\Http\Client;
 use Guzzle\Http\ClientInterface;
+use Omnipay\Common\Item;
+use Omnipay\Common\ItemBag;
 use Omnipay\Common\GatewayFactory;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Omnipay\Common\ItemBag;
-use Omnipay\Common\Item;
 
 /**
  * Provides a basis for payment methods that use Omnipay gateways.
@@ -134,6 +134,8 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public function doExecutePayment() {
+    $this->gateway->setTestMode(!$this->isProduction());
+
     $items = new ItemBag();
     $totalAmount = 0;
     $currency = NULL;
@@ -168,6 +170,14 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     $request = $this->gateway->purchase($configuration);
     $response = $request->send();
+
+    // Save some information.
+    \Drupal::database()
+      ->merge('example_deleted_entity_statistics')
+      ->key(['type' => $type, 'id' => $id])
+      ->fields(['count' => $count])
+      ->execute();
+
     $this->setConfiguration($this->gateway->getParameters());
     $this->getPayment()->save();
     if ($response->isRedirect() && $response instanceof RedirectResponseInterface) {
@@ -190,6 +200,35 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    */
   public function getTransactionId() {
     return \Drupal::service('uuid')->generate();
+  }
+
+  /**
+   * Redirection URL.
+   *
+   * @var \Drupal\Core\Url|null
+   */
+  private $redirectUrl;
+
+  /**
+   * Set the redirection URL value.
+   *
+   * @param \Drupal\Core\Url|null $url
+   *   New redirection URL.
+   */
+  public function setRedirectUrl($url = NULL) {
+    if (($url === NULL) || ($url instanceof Url)) {
+      $this->redirectUrl = $url;
+    }
+  }
+
+  /**
+   * Get the Redirection URL.
+   *
+   * @return \Drupal\Core\Url|null
+   *   Url value.
+   */
+  public function getRedirectUrl() {
+    return $this->redirectUrl;
   }
 
 }

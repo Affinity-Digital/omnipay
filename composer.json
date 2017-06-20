@@ -1,6 +1,7 @@
 {
-	"type" : "drupal-module",
-	"require" : {
-		"omnipay/omnipay" : "^2.0"
-	}
+  "type" : "drupal-module",
+  "require" : {
+    "omnipay/paypal" : "^2.0",
+    "omnipay/sagepay" : "^2.0"
+  }
 }

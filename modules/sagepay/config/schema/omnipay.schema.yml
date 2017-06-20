@@ -1,0 +1,11 @@
+plugin.plugin_configuration.payment_method_configuration.omnipay_paypal_standard:
+  type: plugin.plugin_configuration.payment_method_configuration.payment_basic
+
+plugin.plugin_configuration.payment_method_configuration.omnipay_paypal_rest:
+  type: plugin.plugin_configuration.payment_method_configuration.payment_basic
+
+plugin.plugin_configuration.payment_method_configuration.omnipay_sagepay_direct:
+  type: plugin.plugin_configuration.payment_method_configuration.payment_basic
+
+plugin.plugin_configuration.payment_method_configuration.omnipay_sagepay_server:
+  type: plugin.plugin_configuration.payment_method_configuration.payment_basic

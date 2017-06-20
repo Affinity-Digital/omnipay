@@ -1,0 +1,14 @@
+omnipay.sagepay.redirect.finished:
+  path: '/omnipay/sagepay/finished/{payment}'
+  defaults:
+    _controller: 'Drupal\omnipay_sagepay\Controller\Webhook::finished'
+    _title: 'Sage Pay (Omnipay) Payment Webhook'
+  requirements:
+    _custom_access: '\Drupal\omnipay_sagepay\Controller\Webhook::access'
+omnipay.sagepay.redirect.notify:
+  path: '/omnipay/sagepay/notify'
+  defaults:
+    _controller: 'Drupal\omnipay_sagepay\Controller\Webhook::notify'
+    _title: 'Sage Pay (Omnipay) Notify'
+  requirements:
+    _permission: 'access content'

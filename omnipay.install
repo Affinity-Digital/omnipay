@@ -1,0 +1,62 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the Omnipay module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function omnipay_schema() {
+  $schema['omnipay'] = [
+    'description' => 'Table that contains transactions information.',
+    'fields' => [
+      'oid' => [
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'Primary Key: Unique omnipay ID.',
+      ],
+      'pid' => [
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Payment ID',
+      ],
+      'tid' => [
+        'type' => 'varchar_ascii',
+        'length' => 64,
+        'not null' => TRUE,
+        'default' => '',
+        'description' => 'Transaction ID',
+      ],
+      'tref' => [
+        'type' => 'text',
+        'not null' => TRUE,
+        'size' => 'big',
+        'description' => 'Transaction Reference',
+      ],
+      'created' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Unix timestamp of when record created.',
+      ],
+      'changed' => [
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Unix timestamp of when record changed.',
+      ],
+    ],
+    'primary key' => ['oid'],
+    'indexes' => [
+      'tid' => ['tid'],
+      'pid' => ['pid'],
+      'tref' => ['tref'],
+    ],
+  ];
+
+  return $schema;
+}

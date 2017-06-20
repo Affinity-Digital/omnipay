@@ -4,6 +4,7 @@ namespace Drupal\omnipay\Plugin\Payment\Method;
 
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Utility\Token;
+use Drupal\Core\Database\Connection;
 use Drupal\payment\EventDispatcherInterface;
 use Drupal\payment\OperationResult;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase as GenericPaymentMethodBase;
@@ -13,6 +14,7 @@ use Guzzle\Http\ClientInterface;
 use Omnipay\Common\Item;
 use Omnipay\Common\ItemBag;
 use Omnipay\Common\GatewayFactory;
+use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -28,6 +30,13 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * @var \Omnipay\Common\GatewayInterface
    */
   protected $gateway;
+
+  /**
+   * Database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
 
   /**
    * Constructs a new class instance.
@@ -50,6 +59,8 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *   The HTTP client.
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   The current Database connection.
    */
   public function __construct(
     array $configuration,
@@ -60,14 +71,17 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     Token $token,
     PaymentStatusManagerInterface $payment_status_manager,
     ClientInterface $http_client,
-    Request $request
+    Request $request,
+    Connection $connection
   ) {
 
-    $this->gateway = GatewayFactory::create(
+    $this->setConnection($connection);
+
+    $this->setGateway(GatewayFactory::create(
       $this->getGatewayName(),
       $http_client,
       $request
-    );
+    ));
 
     parent::__construct(
       $configuration,
@@ -105,8 +119,49 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $container->get('token'),
       $container->get('plugin.manager.payment.status'),
       $client,
-      $container->get('request_stack')->getCurrentRequest()
+      $container->get('request_stack')->getCurrentRequest(),
+      \Drupal::database()
     );
+  }
+
+  /**
+   * Return the current database connection to use.
+   *
+   * @return \Drupal\Core\Database\Connection
+   *   Requested database connection to use.
+   */
+  public function getConnection() {
+    return $this->connection;
+  }
+
+  /**
+   * Set the database connection object.
+   *
+   * @param \Drupal\Core\Database\Connection $connection
+   *   Database connection to use.
+   */
+  public function setConnection(Connection $connection) {
+    $this->connection = $connection;
+  }
+
+  /**
+   * Get the gateway interface.
+   *
+   * @return \Omnipay\Common\GatewayInterface
+   *   Omnipay gateway to use.
+   */
+  public function getGateway() {
+    return $this->gateway;
+  }
+
+  /**
+   * Set the gateway object.
+   *
+   * @param \Omnipay\Common\GatewayInterface $gateway
+   *   Database connection to use.
+   */
+  public function setGateway(GatewayInterface $gateway) {
+    $this->gateway = $gateway;
   }
 
   /**
@@ -172,10 +227,18 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     $response = $request->send();
 
     // Save some information.
-    \Drupal::database()
-      ->merge('example_deleted_entity_statistics')
-      ->key(['type' => $type, 'id' => $id])
-      ->fields(['count' => $count])
+    $now = \Drupal::time()->getRequestTime();
+    $fields = [
+      'pid' => $payment->id(),
+      'tid' => $configuration['transactionId'],
+      'tref' => $response->getTransactionReference(),
+      'created' => $now,
+      'changed' => $now,
+    ];
+    $this
+      ->getConnection()
+      ->insert('omnipay')
+      ->fields($fields)
       ->execute();
 
     $this->setConfiguration($this->gateway->getParameters());

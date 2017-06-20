@@ -4,7 +4,7 @@ namespace Drupal\omnipay_paypal\Plugin\Payment\MethodConfiguration;
 
 use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
-use Drupal\omnipay\Plugin\Payment\Method\PayPalRest as PayPalRestMethod;
+use Drupal\omnipay_paypal\Plugin\Payment\Method\PayPalRest as PayPalRestMethod;
 use Omnipay\Omnipay;
 
 /**

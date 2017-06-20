@@ -4,6 +4,7 @@ namespace Drupal\omnipay_sagepay\Controller;
 
 use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Controller\ControllerBase;
+use Drupal\Core\Database\Connection;
 use Drupal\payment\Entity\PaymentInterface;
 use Drupal\payment\Payment;
 use Guzzle\Http\Client;
@@ -16,6 +17,56 @@ use Symfony\Component\HttpFoundation\Request;
  * Handles the "webhook" route.
  */
 class Webhook extends ControllerBase {
+
+  /**
+   * Database connection.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $connection;
+
+  /**
+   * Construct the class using passed paramters.
+   *
+   * @param \Drupal\Core\Database\Connection $connection
+   *   Database connection object.
+   */
+  public function __construct(Connection $connection) {
+    $this->setConnection($connection);
+  }
+
+  /**
+   * Create an instance of this class.
+   *
+   * @param ContainerInterface $container
+   *   Dependancy Container.
+   *
+   * @return \Drupal\omnipay_sagepay\Controller\Webhook
+   *   Instance of this object to use.
+   */
+  public static function create(ContainerInterface $container) {
+    return new static(\Drupal::database());
+  }
+
+  /**
+   * Return the current database connection to use.
+   *
+   * @return \Drupal\Core\Database\Connection
+   *   Requested database connection to use.
+   */
+  public function getConnection() {
+    return $this->connection;
+  }
+
+  /**
+   * Set the database connection object.
+   *
+   * @param \Drupal\Core\Database\Connection $connection
+   *   Database connection to use.
+   */
+  public function setConnection(Connection $connection) {
+    $this->connection = $connection;
+  }
 
   /**
    * Determine access to this route.
@@ -76,11 +127,14 @@ class Webhook extends ControllerBase {
     /** @var \Omnipay\SagePay\Message\ServerNotifyRequest $sagepay */
     $sagepay = $gateway->acceptNotification($parameters);
 
-    $vpstxid = $sagepay->getVPSTxId();
+    /** @var \Drupal\Core\Database\Query\SelectInterface $select */
+    $select = $this
+      ->getConnection()
+      ->select('omnipay', 'o');
 
-    $info = db_select('sagepay_payment_payments', 's')
-      ->condition('vpstxid', $vpstxid)
-      ->fields('s', ['pid', 'securitykey'])
+    $info = $select
+      ->condition('tid', $sagepay->getTransactionId())
+      ->fields('o', ['pid'])
       ->execute()
       ->fetchAssoc();
 

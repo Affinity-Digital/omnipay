@@ -73,4 +73,3 @@ Add the specific omnipay package to this module's composer.json
 * The [Omnipay](https://omnipay.thephpleague.com/) library developers.
 * The [Omnipay](https://www.drupal.org/project/omnipay) Drupal module developers.
 * The [Payment](https://www.drupal.org/project/payment) Drupal module developers.
-

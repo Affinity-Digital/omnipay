@@ -247,7 +247,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $response->redirect();
     }
     else {
-      $this->getPayment()->getPaymentType()->resumeContext();
+      $this->getPayment()->getPaymentType()->getResumeContextResponse();
     }
   }
 

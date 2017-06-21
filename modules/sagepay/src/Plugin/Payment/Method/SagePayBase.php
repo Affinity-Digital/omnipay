@@ -4,6 +4,8 @@ namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 
 use Drupal\Core\Url;
 use Drupal\omnipay\Plugin\Payment\Method\GatewayFactoryAbstractPaymentMethodBase;
+use Drupal\Component\Serialization\Json;
+use Omnipay\Common\CreditCard;
 
 /**
  * SagePay Base payment method.
@@ -37,9 +39,27 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
     $configuration['notifyUrl'] = Url::fromRoute(
       'omnipay.sagepay.redirect.notify',
       [],
-      ['absolute' => TRUE]
+      ['absolute' => TRUE, 'https' => TRUE]
     )
       ->toString();
+
+    $card = new CreditCard();
+
+    $card->setFirstName('GB');
+    $card->setLastName('GB');
+    $card->setBillingAddress1('test');
+    $card->setBillingCity('TRURO');
+    $card->setBillingPostcode('TR12BY');
+    $card->setBillingCountry('GB');
+
+    $card->setShippingCountry($card->getBillingCountry());
+    $card->setShippingAddress1($card->getBillingAddress1());
+    $card->setShippingCity($card->getBillingCity());
+    $card->setShippingPostcode($card->getBillingPostcode());
+
+    $configuration['card'] = $card;
+
+    $configuration['description'] = 'YY';
 
     return $configuration;
   }
@@ -72,6 +92,23 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    */
   protected function getReferrerId() {
     return empty($this->configuration['referrerId']) ? '' : $this->configuration['referrerId'];
+  }
+
+  /**
+   * Generic extract the transaction reference.
+   *
+   * The transaction reference is a JSON encoded string.
+   * We just need the 'VPSTxId' field.
+   *
+   * @param string $transaction_reference
+   *   The returned transaction reference form the payment provider.
+   *
+   * @return string
+   *   The tranasction reference.
+   */
+  public function getTransactionReference($transaction_reference) {
+    $transaction_reference = Json::decode($transaction_reference);
+    return $transaction_reference['VPSTxId'];
   }
 
 }

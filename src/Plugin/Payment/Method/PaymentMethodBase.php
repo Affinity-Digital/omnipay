@@ -219,7 +219,6 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     $configuration = $this->getConfiguration();
     $configuration['amount'] = $totalAmount;
     $configuration['currency'] = $currency;
-    // $configuration['card'] = $card; .
     $configuration['transactionId'] = $this->getTransactionId();
     $configuration['items'] = $items->all();
 
@@ -229,9 +228,9 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     // Save some information.
     $now = \Drupal::time()->getRequestTime();
     $fields = [
-      'pid' => $payment->id(),
+      'pid' => $this->getPayment()->id(),
       'tid' => $configuration['transactionId'],
-      'tref' => $response->getTransactionReference(),
+      'tref' => $this->getPayment()->getPaymentMethod()->getTransactionReference($response->getTransactionReference()),
       'created' => $now,
       'changed' => $now,
     ];
@@ -243,6 +242,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     $this->setConfiguration($this->gateway->getParameters());
     $this->getPayment()->save();
+
     if ($response->isRedirect() && $response instanceof RedirectResponseInterface) {
       $response->redirect();
     }
@@ -292,6 +292,19 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    */
   public function getRedirectUrl() {
     return $this->redirectUrl;
+  }
+
+  /**
+   * Generic extract the transaction reference.
+   *
+   * @param string $transaction_reference
+   *   The returned transaction reference form the payment provider.
+   *
+   * @return string
+   *   The tranasction reference.
+   */
+  public function getTransactionReference($transaction_reference) {
+    return $transaction_reference;
   }
 
 }

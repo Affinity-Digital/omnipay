@@ -11,6 +11,7 @@ use Guzzle\Http\Client;
 use Guzzle\Http\ClientInterface;
 use Omnipay\Common\GatewayFactory;
 use Omnipay\SagePay\Message\ServerNotifyRequest;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -38,7 +39,7 @@ class Webhook extends ControllerBase {
   /**
    * Create an instance of this class.
    *
-   * @param ContainerInterface $container
+   * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
    *   Dependancy Container.
    *
    * @return \Drupal\omnipay_sagepay\Controller\Webhook

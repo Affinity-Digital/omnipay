@@ -7,6 +7,7 @@ use Drupal\Core\Utility\Token;
 use Drupal\Core\Database\Connection;
 use Drupal\payment\EventDispatcherInterface;
 use Drupal\payment\OperationResult;
+use Drupal\payment\Payment;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase as GenericPaymentMethodBase;
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface;
 use Guzzle\Http\Client;
@@ -188,7 +189,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   /**
    * {@inheritdoc}
    */
-  public function doExecutePayment() {
+  public function getPaymentExecutionResult() {
     $this->gateway->setTestMode(!$this->isProduction());
 
     $items = new ItemBag();
@@ -222,7 +223,9 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     $configuration['transactionId'] = $this->getTransactionId();
     $configuration['items'] = $items->all();
 
+    /** @var \Omnipay\Common\Message\RequestInterface $request */
     $request = $this->gateway->purchase($configuration);
+    /** @var \Omnipay\Common\Message\ResponseInterface $response */
     $response = $request->send();
 
     // Save some information.
@@ -247,8 +250,22 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $response->redirect();
     }
     else {
-      $this->getPayment()->getPaymentType()->getResumeContextResponse();
+      $payment_status = ($response->isSuccessful())
+        ? 'payment_success'
+        : 'payment_failed';
+      $this
+        ->getPayment()
+        ->setPaymentStatus(
+          Payment::statusManager()->createInstance($payment_status)
+        )
+        ->save();
+
+      $response = $this
+        ->getPayment()
+        ->getPaymentType()
+        ->getResumeContextResponse();
     }
+    return new OperationResult($response);
   }
 
   /**

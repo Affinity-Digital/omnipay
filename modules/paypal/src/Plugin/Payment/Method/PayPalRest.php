@@ -4,6 +4,7 @@ namespace Drupal\omnipay_paypal\Plugin\Payment\Method;
 
 use Drupal\Core\PhpStorage\PhpStorageFactory;
 use Drupal\Core\Url;
+use Omnipay\PayPal\Message\RestAuthorizeResponse;
 
 /**
  * PayPal Express payment method.
@@ -45,6 +46,48 @@ class PayPalRest extends PayPalBasic {
    */
   public function getApiContext($type) {
     return self::apiContext($this->getPluginDefinition(), $type);
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguration() {
+
+    $configuration = parent::getConfiguration();
+
+    $definition = $this->getPluginDefinition();
+
+    foreach ($configuration as $key => $value) {
+      if (empty($value) && !empty($definition[$key])) {
+        $configuration[$key] = $definition[$key];
+      }
+    }
+
+    if ($this->getPayment()) {
+      $configuration['returnUrl'] = Url::fromRoute(
+        'omnipay.paypal.redirect.success',
+        ['payment' => $this->getPayment()->id()],
+        ['absolute' => TRUE, 'https' => TRUE]
+        )
+        ->toString(TRUE)
+        ->getGeneratedUrl();
+
+      $configuration['cancelUrl'] = Url::fromRoute(
+        'omnipay.paypal.redirect.cancel',
+        ['payment' => $this->getPayment()->id()],
+        ['absolute' => TRUE, 'https' => TRUE]
+        )
+        ->toString(TRUE)
+        ->getGeneratedUrl();
+    }
+
+    $configuration['description'] = 'This is a test';
+
+    $this->gateway->setClientId($configuration['clientId']);
+    $this->gateway->setSecret($configuration['secret']);
+    $configuration['token'] = $this->gateway->getToken();
+
+    return $configuration;
   }
 
   /**

@@ -65,16 +65,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
   }
 
   /**
-   * Return if not in test mode.
-   *
-   * @return bool
-   *   True if configured for Production.
-   */
-  protected function isProduction() {
-    return empty($this->configuration['testMode']) || !$this->configuration['testMode'];
-  }
-
-  /**
    * Return the configured vendor name.
    *
    * @return string
@@ -100,14 +90,14 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    * The transaction reference is a JSON encoded string.
    * We just need the 'VPSTxId' field.
    *
-   * @param string $transaction_reference
-   *   The returned transaction reference form the payment provider.
+   * @param \Omnipay\Common\Message\ResponseInterface $response
+   *   The returned response.
    *
    * @return string
    *   The tranasction reference.
    */
-  public function getTransactionReference($transaction_reference) {
-    $transaction_reference = Json::decode($transaction_reference);
+  public function getTransactionReference(ResponseInterface $response) {
+    $transaction_reference = Json::decode($response->getTransactionReference());
     return $transaction_reference['VPSTxId'];
   }
 

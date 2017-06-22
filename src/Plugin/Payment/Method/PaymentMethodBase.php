@@ -17,6 +17,7 @@ use Omnipay\Common\ItemBag;
 use Omnipay\Common\GatewayFactory;
 use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
+use Omnipay\Common\Message\ResponseInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -192,11 +193,13 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   public function getPaymentExecutionResult() {
     $this->gateway->setTestMode(!$this->isProduction());
 
-    $items = new ItemBag();
+    $item_classname = $this->getItemClass();
+    $item_bag_classname = $this->getItemBagClass();
+    $items = new $item_bag_classname();
     $totalAmount = 0;
     $currency = NULL;
     foreach ($this->getPayment()->getLineItems() as $line_item) {
-      $item = new Item();
+      $item = new $item_classname();
       $item->setPrice($line_item->getAmount());
       $item->setQuantity($line_item->getQuantity());
       $item->setDescription($line_item->getDescription());
@@ -228,12 +231,16 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     /** @var \Omnipay\Common\Message\ResponseInterface $response */
     $response = $request->send();
 
+    if (!($response instanceof ResponseInterface)) {
+      $response = $this->process($response);
+    }
+
     // Save some information.
     $now = \Drupal::time()->getRequestTime();
     $fields = [
       'pid' => $this->getPayment()->id(),
       'tid' => $configuration['transactionId'],
-      'tref' => $this->getPayment()->getPaymentMethod()->getTransactionReference($response->getTransactionReference()),
+      'tref' => $this->getPayment()->getPaymentMethod()->getTransactionReference($response),
       'created' => $now,
       'changed' => $now,
     ];
@@ -314,14 +321,72 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   /**
    * Generic extract the transaction reference.
    *
-   * @param string $transaction_reference
-   *   The returned transaction reference form the payment provider.
+   * @param \Omnipay\Common\Message\ResponseInterface $response
+   *   The returned response.
    *
    * @return string
    *   The tranasction reference.
    */
-  public function getTransactionReference($transaction_reference) {
+  public function getTransactionReference(ResponseInterface $response) {
+    $transaction_reference = $response->getTransactionReference();
+    if (empty($transaction_reference)) {
+      $transaction_reference = 'NULL';
+    }
     return $transaction_reference;
+  }
+
+  /**
+   * Return the class to use for ItemBag.
+   *
+   * @return string
+   *   The class name to use.
+   */
+  public function getItemBagClass() {
+    return ItemBag::class;
+  }
+
+  /**
+   * Return the class to use for Item.
+   *
+   * @return string
+   *   The class name to use.
+   */
+  public function getItemClass() {
+    return Item::class;
+  }
+
+  /**
+   * Gets the setting for the production server.
+   *
+   * @return bool
+   *   Whether it is the production server or not.
+   */
+  public function isProduction() {
+    return !empty($this->configuration['production']);
+  }
+
+  /**
+   * Gets the production of this configuration.
+   *
+   * @return string
+   *   Configured production.
+   */
+  public function getProduction() {
+    return isset($this->configuration['production']) ? $this->configuration['production'] : '';
+  }
+
+  /**
+   * Sets the production of this configuration.
+   *
+   * @param string $production
+   *   New Production value.
+   *
+   * @return \Drupal\omnipay\Plugin\Payment\MethodConfiguration\OmniPayBasic
+   *   Fluent interface.
+   */
+  public function setProduction($production) {
+    $this->configuration['production'] = $production;
+    return $this;
   }
 
 }

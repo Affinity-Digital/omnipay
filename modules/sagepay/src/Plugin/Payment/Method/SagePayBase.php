@@ -6,6 +6,7 @@ use Drupal\Core\Url;
 use Drupal\omnipay\Plugin\Payment\Method\GatewayFactoryAbstractPaymentMethodBase;
 use Drupal\Component\Serialization\Json;
 use Omnipay\Common\CreditCard;
+use Omnipay\Common\Message\ResponseInterface;
 
 /**
  * SagePay Base payment method.
@@ -45,8 +46,8 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
 
     $card = new CreditCard();
 
-    $card->setFirstName('GB');
-    $card->setLastName('GB');
+    $card->setFirstName('TestFirstName');
+    $card->setLastName('TestLatsName');
     $card->setBillingAddress1('test');
     $card->setBillingCity('TRURO');
     $card->setBillingPostcode('TR12BY');

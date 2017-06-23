@@ -104,7 +104,7 @@ class Webhook extends ControllerBase {
    *   Request structure.
    */
   public function notify(Request $request) {
-    $containerClient = \Drupal::service('http.client');
+    $containerClient = \Drupal::service('http_client');
 
     // Onmipay 2.x Client class is \Guzzle\Http\ClientInterface.
     if ($containerClient instanceof ClientInterface) {

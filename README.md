@@ -57,6 +57,13 @@ I suggest that the following class are extend in the payment method modules
 ## Payment Method
 Drupal\omnipay\Plugin\Payment\Method\GatewayFactoryAbstractPaymentMethodBase
 
+### Card details
+If card details are necessary for this payment method then these are added in
+getConfiguration() method and needCard() is overridden and returns TRUE. This
+allows the web site to determine if the card details are needed for this payment
+method. The card details can be set by using the setCard() method and passing an
+associative array of the minimum fields.
+
 ## Payment Method Deriver
 Drupal\omnipay\Plugin\Payment\Method\OmnipayDriver
 

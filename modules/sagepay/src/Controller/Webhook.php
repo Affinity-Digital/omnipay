@@ -70,16 +70,26 @@ class Webhook extends ControllerBase {
   }
 
   /**
-   * Determine access to this route.
+   * Determine if access is allowed.
    *
-   * @param string $payment_method_id
-   *   The payment method id value.
+   * @param \Drupal\payment\Entity\PaymentInterface $payment
+   *   Payment .
    *
-   * @return \Drupal\Core\Access\AccessResult
-   *   Access value.
+   * @return bool
+   *   The access status.
    */
-  public function access($payment_method_id) {
-    return AccessResult::allowedIf($this->verify($payment_method_id));
+  public function access(PaymentInterface $payment) {
+    return AccessResult::allowedIf($this->verify($payment));
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  private function verify(PaymentInterface $payment) {
+    $request = \Drupal::request();
+    /** @var \Drupal\omnipay_sagepay\Plugin\Payment\Method\SagePayBasic $payment_method */
+    $payment_method = $payment->getPaymentMethod();
+    return $payment->getOwnerId() == \Drupal::currentUser()->id();
   }
 
   /**
@@ -94,7 +104,7 @@ class Webhook extends ControllerBase {
    *   The payment that is being worked on.
    */
   public function finished(Request $request, PaymentInterface $payment) {
-    // Do nothing as there is no finished functionality.
+    return $payment->getPaymentType()->getResumeContextResponse()->getResponse();
   }
 
   /**
@@ -102,6 +112,9 @@ class Webhook extends ControllerBase {
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   Request structure.
+   *
+   * @return \Symfony\Component\HttpFoundation\RedirectResponse
+   *   Where to redirect to.
    */
   public function notify(Request $request) {
     $containerClient = \Drupal::service('http_client');
@@ -123,11 +136,11 @@ class Webhook extends ControllerBase {
       $request
     );
 
-    $parameters = [];
-
     /** @var \Omnipay\SagePay\Message\ServerNotifyRequest $sagepay */
-    $sagepay = $gateway->acceptNotification($parameters);
+    $sagepay = $gateway->acceptNotification();
 
+    // Assume for the moment that TransactionId is good so that we can get
+    // VendorName.
     /** @var \Drupal\Core\Database\Query\SelectInterface $select */
     $select = $this
       ->getConnection()
@@ -139,68 +152,85 @@ class Webhook extends ControllerBase {
       ->execute()
       ->fetchAssoc();
 
-    $payment_id = $info['pid'];
-    /** @var \Drupal\payment\Entity\PaymentInterface $payment */
-    $payment = $this
-      ->entityTypeManager
-      ->getStorage('payment')
-      ->load($payment_id);
+    $status = 'ERROR';
+    $payment_id = 0;
 
-    $status = $sagepay->getStatus();
-    switch ($status) {
-      // If the transaction was authorised.
-      case ServerNotifyRequest::SAGEPAY_STATUS_OK:
+    if (!empty($info['pid'])) {
+      $payment_id = $info['pid'];
+      /** @var \Drupal\payment\Entity\PaymentInterface $payment */
+      $payment = $this
+        ->entityTypeManager()
+        ->getStorage('payment')
+        ->load($payment_id);
 
-        // (for European Payment Types only), if the transaction
-        // ... has yet to be accepted or rejected.
-      case ServerNotifyRequest::SAGEPAY_STATUS_PENDING:
+      if ($payment) {
+        $gateway->setVendor($payment->getPaymentMethod()->getVendorName());
+        $gateway->setReferrerId($payment->getPaymentMethod()->getReferrerId());
 
+        $parameters = $payment->getPaymentMethod()->getConfiguration();
+
+        /** @var \Omnipay\SagePay\Message\ServerNotifyRequest $sagepay */
+        $sagepay = $gateway->acceptNotification($parameters);
+
+        $status = 'INVALID';
         if ($sagepay->isValid()) {
-          $payment
-            ->setStatus(
-              Payment::statusManager()->createInstance('payment_success')
-            )
-            ->save();
-        }
-        else {
-          $payment
-            ->setStatus(
-              Payment::statusManager()->createInstance('payment_failed')
-            )
-            ->save();
-        }
-        break;
+          $status = 'OK';
+          switch ($sagepay->getStatus()) {
+            // If the transaction was authorised.
+            case ServerNotifyRequest::SAGEPAY_STATUS_OK:
+              $payment
+                ->setStatus(
+                  Payment::statusManager()->createInstance('payment_success')
+                )
+                ->save();
+              // (for European Payment Types only), if the transaction
+              // ... has yet to be accepted or rejected.
+            case ServerNotifyRequest::SAGEPAY_STATUS_PENDING:
+              $payment
+                ->setStatus(
+                  Payment::statusManager()->createInstance('payment_pending')
+                )
+                ->save();
+              break;
 
-      // If the authorisation was failed by the bank.
-      case ServerNotifyRequest::SAGEPAY_STATUS_NOTAUTHED:
+            // If the authorisation was failed by the bank.
+            case ServerNotifyRequest::SAGEPAY_STATUS_NOTAUTHED:
 
-        // If your fraud screening rules were not met.
-      case ServerNotifyRequest::SAGEPAY_STATUS_REJECTED:
-        // If the user decided to cancel the transaction whilst
-        // ... on our payment pages.
-      case ServerNotifyRequest::SAGEPAY_STATUS_ABORT:
-        // If an error has occurred at Sage Pay.
-        // These are very infrequent, but your site should handle them anyway.
-        // They normally indicate a problem with bank connectivity.
-      case ServerNotifyRequest::SAGEPAY_STATUS_ERROR:
-      default:
-        $this
-          ->getLogger('omnipay_sagepay_payment')
-          ->error(
-            'Sagepay-error: @status -> @detail',
-            ['@status' => $status, '@detail' => $sagepay->getMessage()]
-        );
-        $payment->setStatus(
-          Payment::statusManager()->createInstance('payment_failed')
-        );
-        break;
+              // If your fraud screening rules were not met.
+            case ServerNotifyRequest::SAGEPAY_STATUS_REJECTED:
+              // If the user decided to cancel the transaction whilst
+              // ... on our payment pages.
+            case ServerNotifyRequest::SAGEPAY_STATUS_ABORT:
+              // If an error has occurred at Sage Pay.
+              // These are very infrequent, but your site should handle them
+              // anyway. They normally indicate a problem with bank connectivity.
+            case ServerNotifyRequest::SAGEPAY_STATUS_ERROR:
+            default:
+              $this
+                ->getLogger('omnipay_sagepay_payment')
+                ->error(
+                  'Sagepay-error: @status -> @detail',
+                  ['@status' => $status, '@detail' => $sagepay->getMessage()]
+              );
+              $payment
+                ->setPaymentStatus(
+                  Payment::statusManager()->createInstance('payment_failed')
+                )
+                ->save();
+              break;
+          }
+        }
+      }
     }
-    $payment->save();
-    $this->redirect(
+
+    $redirection = $this->redirect(
       'omnipay.sagepay.redirect.finished',
-      ['payment' => $payment->id()],
-      ['absolute' => TRUE]
+      ['payment' => $payment_id],
+      ['absolute' => TRUE, 'https' => TRUE]
     );
+    $content = 'Status=' . $status . PHP_EOL . 'RedirectURL=' . $redirection->getTargetUrl();
+    $redirection->setContent($content);
+    return $redirection;
   }
 
 }

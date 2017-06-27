@@ -5,7 +5,6 @@ namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 use Drupal\Core\Url;
 use Drupal\omnipay\Plugin\Payment\Method\GatewayFactoryAbstractPaymentMethodBase;
 use Drupal\Component\Serialization\Json;
-use Omnipay\Common\CreditCard;
 use Omnipay\Common\Message\ResponseInterface;
 
 /**
@@ -37,30 +36,13 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
         $configuration[$key] = $definition[$key];
       }
     }
+
     $configuration['notifyUrl'] = Url::fromRoute(
       'omnipay.sagepay.redirect.notify',
       [],
       ['absolute' => TRUE, 'https' => TRUE]
     )
       ->toString();
-
-    $card = new CreditCard();
-
-    $card->setFirstName('TestFirstName');
-    $card->setLastName('TestLatsName');
-    $card->setBillingAddress1('test');
-    $card->setBillingCity('TRURO');
-    $card->setBillingPostcode('TR12BY');
-    $card->setBillingCountry('GB');
-
-    $card->setShippingCountry($card->getBillingCountry());
-    $card->setShippingAddress1($card->getBillingAddress1());
-    $card->setShippingCity($card->getBillingCity());
-    $card->setShippingPostcode($card->getBillingPostcode());
-
-    $configuration['card'] = $card;
-
-    $configuration['description'] = 'YY';
 
     return $configuration;
   }
@@ -71,8 +53,8 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    * @return string
    *   Configured Vendor Name.
    */
-  protected function getVendorName() {
-    return empty($this->configuration['vendor']) ? '' : $this->configuration['vendor'];
+  public function getVendorName() {
+    return empty($this->getPluginDefinition()['vendor']) ? '' : $this->getPluginDefinition()['vendor'];
   }
 
   /**
@@ -81,8 +63,8 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    * @return string
    *   Configured Referrer Id.
    */
-  protected function getReferrerId() {
-    return empty($this->configuration['referrerId']) ? '' : $this->configuration['referrerId'];
+  public function getReferrerId() {
+    return empty($this->getPluginDefinition()['referrerId']) ? '' : $this->getPluginDefinition()['referrerId'];
   }
 
   /**
@@ -100,6 +82,30 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
   public function getTransactionReference(ResponseInterface $response) {
     $transaction_reference = Json::decode($response->getTransactionReference());
     return $transaction_reference['VPSTxId'];
+  }
+
+  /**
+   * Payment methods set this to TRUE if they need card details.
+   *
+   * @return bool
+   *   TRUE if card details are needed by payment method.
+   */
+  public function needCard() {
+    return TRUE;
+  }
+
+  /**
+   * Update the configuration based upon the response.
+   *
+   * @param \Omnipay\Common\Message\ResponseInterface $response
+   *   The response object.
+   */
+  public function updateConfiguration(ResponseInterface $response) {
+    $transaction_reference = Json::decode($response->getTransactionReference());
+    foreach ($transaction_reference as $key => $value) {
+      $this->configuration[$key] = $value;
+    }
+    $this->getPayment()->save();
   }
 
 }

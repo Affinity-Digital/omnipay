@@ -12,6 +12,7 @@ use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase as GenericPaymentMeth
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface;
 use Guzzle\Http\Client;
 use Guzzle\Http\ClientInterface;
+use Omnipay\Common\CreditCard;
 use Omnipay\Common\Item;
 use Omnipay\Common\ItemBag;
 use Omnipay\Common\GatewayFactory;
@@ -20,6 +21,7 @@ use Omnipay\Common\Message\RedirectResponseInterface;
 use Omnipay\Common\Message\ResponseInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Drupal\payment\OperationResultInterface;
 
 /**
  * Provides a basis for payment methods that use Omnipay gateways.
@@ -177,13 +179,14 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public function getConfiguration() {
-    return $this->gateway->getParameters();
+    return \array_merge(parent::getConfiguration(), $this->gateway->getParameters());
   }
 
   /**
    * {@inheritdoc}
    */
   public function setConfiguration(array $configuration) {
+    parent::setConfiguration($configuration);
     $this->gateway->initialize($configuration);
   }
 
@@ -191,40 +194,23 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public function getPaymentExecutionResult() {
-    $this->gateway->setTestMode(!$this->isProduction());
+    $items = $this->getItemBag();
 
-    $item_classname = $this->getItemClass();
-    $item_bag_classname = $this->getItemBagClass();
-    $items = new $item_bag_classname();
-    $totalAmount = 0;
-    $currency = NULL;
-    foreach ($this->getPayment()->getLineItems() as $line_item) {
-      $item = new $item_classname();
-      $item->setPrice($line_item->getAmount());
-      $item->setQuantity($line_item->getQuantity());
-      $item->setDescription($line_item->getDescription());
-      $item->setName($line_item->getName());
-      $items->add($item);
-
-      $totalAmount += $line_item->getTotalAmount();
-      $line_item_currency = $line_item->getCurrencyCode();
-
-      if ($line_item_currency != $currency) {
-        if ($currency != NULL) {
-          // This is the second time we are changing the currency which means
-          // that our line items have mixed currencies. This ain't gonna work!
-          drupal_set_message($this->t('Mixed currencies detected which is not yet supported.'), 'error');
-          return new OperationResult(NULL);
-        }
-        $currency = $line_item_currency;
-      }
+    if ($items instanceof OperationResultInterface) {
+      return $items;
     }
 
+    $this->gateway->setTestMode(!$this->isProduction());
+
     $configuration = $this->getConfiguration();
-    $configuration['amount'] = $totalAmount;
-    $configuration['currency'] = $currency;
+    $configuration['amount'] = $this->payment->getAmount();
+    $configuration['description'] = $this->payment->label();
+    $configuration['currency'] = $this->getCurrency();
     $configuration['transactionId'] = $this->getTransactionId();
     $configuration['items'] = $items->all();
+    if ($this->needCard()) {
+      $configuration['card'] = $this->getCard();
+    }
 
     /** @var \Omnipay\Common\Message\RequestInterface $request */
     $request = $this->gateway->purchase($configuration);
@@ -251,7 +237,8 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       ->execute();
 
     $this->setConfiguration($this->gateway->getParameters());
-    $this->getPayment()->save();
+
+    $this->updateConfiguration($response);
 
     if ($response->isRedirect() && $response instanceof RedirectResponseInterface) {
       $response->redirect();
@@ -316,6 +303,35 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    */
   public function getRedirectUrl() {
     return $this->redirectUrl;
+  }
+
+  /**
+   * Currency.
+   *
+   * @var string|null
+   */
+  protected $currency;
+
+  /**
+   * Set the Currency value.
+   *
+   * @param string|null $currency
+   *   New currency value.
+   */
+  public function setCurrency($currency = NULL) {
+    if (($currency === NULL) || is_string($currency)) {
+      $this->currency = $currency;
+    }
+  }
+
+  /**
+   * Get the Currency.
+   *
+   * @return string|null
+   *   Currency string value.
+   */
+  public function getCurrency() {
+    return $this->currency;
   }
 
   /**
@@ -387,6 +403,99 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   public function setProduction($production) {
     $this->configuration['production'] = $production;
     return $this;
+  }
+
+  /**
+   * Get the items into the correct Collection.
+   *
+   * @return mixed
+   *   Items collection.
+   */
+  public function getItemBag() {
+    $item_classname = $this->getItemClass();
+    $item_bag_classname = $this->getItemBagClass();
+    $items = new $item_bag_classname();
+    $currency = NULL;
+    foreach ($this->getPayment()->getLineItems() as $line_item) {
+      $item = new $item_classname();
+      $item->setPrice($line_item->getAmount());
+      $item->setQuantity($line_item->getQuantity());
+      $item->setDescription($line_item->getDescription());
+      $item->setName($line_item->getName());
+      $items->add($item);
+
+      $line_item_currency = $line_item->getCurrencyCode();
+
+      if ($line_item_currency != $currency) {
+        if ($currency != NULL) {
+          // This is the second time we are changing the currency which means
+          // that our line items have mixed currencies. This ain't gonna work!
+          drupal_set_message($this->t('Mixed currencies detected which is not yet supported.'), 'error');
+          return new OperationResult(NULL);
+        }
+        $currency = $line_item_currency;
+      }
+    }
+    $this->setCurrency($currency);
+    return $items;
+  }
+
+  /**
+   * Payment methods set this to TRUE if they need card details.
+   *
+   * @return bool
+   *   TRUE if card details are needed by payment method.
+   */
+  public function needCard() {
+    return FALSE;
+  }
+
+  /**
+   * Card details.
+   *
+   * @var \Omnipay\Common\CreditCard|null
+   */
+  protected $card;
+
+  /**
+   * Set the card details.
+   *
+   * See payment methods for which parameters are mandatory.
+   *
+   * @param array|null $parameters
+   *   NULL or associative array of values.
+   *
+   * @see \Omnipay\Common\CreditCard
+   */
+  public function setCard($parameters = NULL) {
+
+    if ($parameters === NULL) {
+      $this->card = $parameters;
+      return;
+    }
+
+    if (is_array($parameters)) {
+      $this->card = (empty($parameters) ? NULL : new CreditCard($parameters));
+    }
+  }
+
+  /**
+   * Get the card details.
+   *
+   * @return \Omnipay\Common\CreditCard|null
+   *   Card details.
+   */
+  public function getCard() {
+    return $this->card;
+  }
+
+  /**
+   * Update the configuration based upon the response.
+   *
+   * @param \Omnipay\Common\Message\ResponseInterface $response
+   *   The response from the online payment gateway.
+   */
+  public function updateConfiguration(ResponseInterface $response) {
   }
 
 }

@@ -492,10 +492,10 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   /**
    * Update the configuration based upon the response.
    *
-   * @param \Omnipay\Common\Message\ResponseInterface $response
+   * @param \Omnipay\Common\Message\ResponseInterface|\Omnipay\Common\Message\RedirectResponseInterface $response
    *   The response from the online payment gateway.
    */
-  public function updateConfiguration(ResponseInterface $response) {
+  public function updateConfiguration($response) {
   }
 
 }

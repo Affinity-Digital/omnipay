@@ -2,9 +2,10 @@
 
 namespace Drupal\omnipay\Plugin\Payment\Method;
 
-use Drupal\Core\Extension\ModuleHandlerInterface;
-use Drupal\Core\Utility\Token;
 use Drupal\Core\Database\Connection;
+use Drupal\Core\Extension\ModuleHandlerInterface;
+use Drupal\Core\Url;
+use Drupal\Core\Utility\Token;
 use Drupal\payment\EventDispatcherInterface;
 use Drupal\payment\OperationResult;
 use Drupal\payment\Payment;

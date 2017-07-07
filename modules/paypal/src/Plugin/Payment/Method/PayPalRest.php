@@ -53,9 +53,9 @@ class PayPalRest extends PayPalBasic {
         )
         ->toString(TRUE)
         ->getGeneratedUrl();
-    }
 
-    $configuration['description'] = $this->getPayment()->label();
+      $configuration['description'] = $this->getPayment()->label();
+    }
 
     $this->gateway->setClientId($configuration['clientId']);
     $this->gateway->setSecret($configuration['secret']);

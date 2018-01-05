@@ -16,7 +16,7 @@ use Guzzle\Http\ClientInterface;
 use Omnipay\Common\CreditCard;
 use Omnipay\Common\Item;
 use Omnipay\Common\ItemBag;
-use Omnipay\Common\GatewayFactory;
+use Omnipay\Omnipay;
 use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Omnipay\Common\Message\ResponseInterface;
@@ -82,7 +82,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     $this->setConnection($connection);
 
-    $this->setGateway(GatewayFactory::create(
+    $this->setGateway(Omnipay::create(
       $this->getGatewayName(),
       $http_client,
       $request

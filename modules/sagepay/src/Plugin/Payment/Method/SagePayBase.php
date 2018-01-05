@@ -100,7 +100,7 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    * @param \Omnipay\Common\Message\ResponseInterface $response
    *   The response object.
    */
-  public function updateConfiguration(ResponseInterface $response) {
+  public function updateConfiguration($response) {
     $transaction_reference = Json::decode($response->getTransactionReference());
     foreach ($transaction_reference as $key => $value) {
       $this->configuration[$key] = $value;

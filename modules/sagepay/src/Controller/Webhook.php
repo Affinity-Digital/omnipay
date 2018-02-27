@@ -154,6 +154,7 @@ class Webhook extends ControllerBase {
 
     $status = 'ERROR';
     $payment_id = 0;
+    $payment = NULL;
 
     if (!empty($info['pid'])) {
       $payment_id = $info['pid'];
@@ -177,34 +178,35 @@ class Webhook extends ControllerBase {
           $status = 'OK';
           switch ($sagepay->getStatus()) {
             // If the transaction was authorised.
-            case ServerNotifyRequest::SAGEPAY_STATUS_OK:
+            case 'OK':
               $payment
-                ->setStatus(
+                ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_success')
                 )
                 ->save();
+              break;
               // (for European Payment Types only), if the transaction
               // ... has yet to be accepted or rejected.
-            case ServerNotifyRequest::SAGEPAY_STATUS_PENDING:
+            case 'PENDING':
               $payment
-                ->setStatus(
+                ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_pending')
                 )
                 ->save();
               break;
 
             // If the authorisation was failed by the bank.
-            case ServerNotifyRequest::SAGEPAY_STATUS_NOTAUTHED:
+            case 'NOTAUTHED':
 
               // If your fraud screening rules were not met.
-            case ServerNotifyRequest::SAGEPAY_STATUS_REJECTED:
+            case 'REJECTED':
               // If the user decided to cancel the transaction whilst
               // ... on our payment pages.
-            case ServerNotifyRequest::SAGEPAY_STATUS_ABORT:
+            case 'ABORT':
               // If an error has occurred at Sage Pay.
               // These are very infrequent, but your site should handle them
               // anyway. They normally indicate a problem with bank connectivity.
-            case ServerNotifyRequest::SAGEPAY_STATUS_ERROR:
+            case 'ERROR':
             default:
               $this
                 ->getLogger('omnipay_sagepay_payment')
@@ -229,8 +231,8 @@ class Webhook extends ControllerBase {
       ['absolute' => TRUE, 'https' => TRUE]
     );
     $content = 'Status=' . $status . PHP_EOL . 'RedirectURL=' . $redirection->getTargetUrl();
-    $redirection->setContent($content);
-    return $redirection;
+    echo $content;
+    exit;
   }
 
 }

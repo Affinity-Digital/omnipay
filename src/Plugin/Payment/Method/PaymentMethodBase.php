@@ -44,6 +44,13 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   protected $connection;
 
   /**
+   * Execution Result.
+   *
+   * @var \Drupal\Core\Database\Connection
+   */
+  protected $paymentExecutionResult = NULL;
+
+  /**
    * Constructs a new class instance.
    *
    * @param array $configuration
@@ -194,7 +201,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   /**
    * {@inheritdoc}
    */
-  public function getPaymentExecutionResult() {
+  protected function doExecutePayment() {
     $items = $this->getItemBag();
 
     if ($items instanceof OperationResultInterface) {
@@ -242,6 +249,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     $this->updateConfiguration($response);
 
     if ($response->isRedirect() && $response instanceof RedirectResponseInterface) {
+      $this->paymentExecutionResult = $response;
       $response->redirect();
     }
     else {
@@ -260,7 +268,14 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
         ->getPaymentType()
         ->getResumeContextResponse();
     }
-    return new OperationResult($response);
+    $this->paymentExecutionResult = $response;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPaymentExecutionResult() {
+    return new OperationResult($this->paymentExecutionResult);
   }
 
   /**

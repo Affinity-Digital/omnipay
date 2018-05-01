@@ -67,7 +67,7 @@ class PayPalStandard extends PayPalBasic {
       '#required' => TRUE,
     ];
     $element['paypal']['signature'] = [
-      '#type' => 'email',
+      '#type' => 'textfield',
       '#title' => $this->t('Signature'),
       '#default_value' => $this->getSignature(),
       '#maxlength' => 255,
@@ -97,7 +97,7 @@ class PayPalStandard extends PayPalBasic {
    */
   public function getDerivativeConfiguration() {
     return parent::getDerivativeConfiguration() + [
-      'username' => $this->getUserame(),
+      'username' => $this->getUsername(),
       'password' => $this->getPassword(),
       'signature' => $this->getSignature(),
     ];

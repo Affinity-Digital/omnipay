@@ -2,6 +2,9 @@
 
 namespace Drupal\omnipay_paypal\Plugin\Payment\MethodConfiguration;
 
+use Drupal\Component\Utility\NestedArray;
+use Drupal\Core\Form\FormStateInterface;
+
 /**
  * Provides the configuration for the PayPal Express payment method plugin.
  *

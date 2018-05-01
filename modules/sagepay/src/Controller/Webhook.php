@@ -7,10 +7,10 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
 use Drupal\payment\Entity\PaymentInterface;
 use Drupal\payment\Payment;
-use Omnipay\Common\Http\Client;
-use Omnipay\Common\Http\ClientInterface;
+use Http\Adapter\Guzzle6\Client;
 use Omnipay\Common\GatewayFactory;
-use Omnipay\SagePay\Message\ServerNotifyRequest;
+use Omnipay\Common\Http\Client as OmnipayClient;
+use Omnipay\Common\Http\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -86,7 +86,6 @@ class Webhook extends ControllerBase {
    * {@inheritdoc}
    */
   private function verify(PaymentInterface $payment) {
-    $request = \Drupal::request();
     /** @var \Drupal\omnipay_sagepay\Plugin\Payment\Method\SagePayBasic $payment_method */
     $payment_method = $payment->getPaymentMethod();
     return $payment->getOwnerId() == \Drupal::currentUser()->id();
@@ -125,7 +124,8 @@ class Webhook extends ControllerBase {
     }
     else {
       // Create a new instance and use the passed instance's configuration.
-      $client = new Client($containerClient);
+      $config = $containerClient->getConfig();
+      $client = new OmnipayClient(Client::createWithConfig($config));
     }
 
     /** @var \Omnipay\SagePay\ServerGateway $gateway */

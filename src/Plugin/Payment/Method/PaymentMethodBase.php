@@ -12,8 +12,9 @@ use Drupal\payment\OperationResultInterface;
 use Drupal\payment\Payment;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase as GenericPaymentMethodBase;
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface;
+use Http\Adapter\Guzzle6\Client;
 use Omnipay\Common\CreditCard;
-use Omnipay\Common\Http\Client;
+use Omnipay\Common\Http\Client as OmnipayClient;
 use Omnipay\Common\Http\ClientInterface;
 use Omnipay\Common\Item;
 use Omnipay\Common\ItemBag;
@@ -112,12 +113,13 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     $containerClient = $container->get('http_client');
 
-    // Onmipay 3.x Client class is Omnipay\Common\Http\ClientInterface.
+    // Onmipay 3.x Client class is \Omnipay\Common\Http\ClientInterface.
     if ($containerClient instanceof ClientInterface) {
       $client = $containerClient;
     }
     else {
-      $client = new Client($containerClient);
+      $config = $containerClient->getConfig();
+      $client = new OmnipayClient(Client::createWithConfig($config));
     }
 
     return new static(

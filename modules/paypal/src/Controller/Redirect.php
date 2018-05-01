@@ -6,9 +6,10 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
 use Drupal\payment\Entity\PaymentInterface;
-use Omnipay\Common\Http\Client;
-use Omnipay\Common\Http\ClientInterface;
+use Http\Adapter\Guzzle6\Client;
 use Omnipay\Common\GatewayFactory;
+use Omnipay\Common\Http\Client as OmnipayClient;
+use Omnipay\Common\Http\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -34,7 +35,7 @@ class Redirect extends ControllerBase {
   /**
    * Client object.
    *
-   * @var Omnipay\Common\Http\ClientInterfacee
+   * @var \Omnipay\Common\Http\ClientInterface
    */
   protected $client;
 
@@ -75,7 +76,8 @@ class Redirect extends ControllerBase {
       $client = $containerClient;
     }
     else {
-      $client = new Client($containerClient);
+      $config = $containerClient->getConfig();
+      $client = new OmnipayClient(Client::createWithConfig($config));
     }
 
     return new static(
@@ -118,7 +120,7 @@ class Redirect extends ControllerBase {
   /**
    * Set the database connection object.
    *
-   * @param \Omnipay\Common\Http\ClientInterface $client
+   * @param \Http\Client\HttpClient $client
    *   Client to use.
    */
   public function setClient(ClientInterface $client) {

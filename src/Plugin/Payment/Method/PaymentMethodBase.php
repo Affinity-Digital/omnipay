@@ -8,21 +8,21 @@ use Drupal\Core\Url;
 use Drupal\Core\Utility\Token;
 use Drupal\payment\EventDispatcherInterface;
 use Drupal\payment\OperationResult;
+use Drupal\payment\OperationResultInterface;
 use Drupal\payment\Payment;
 use Drupal\payment\Plugin\Payment\Method\PaymentMethodBase as GenericPaymentMethodBase;
 use Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface;
-use Guzzle\Http\Client;
-use Guzzle\Http\ClientInterface;
 use Omnipay\Common\CreditCard;
+use Omnipay\Common\Http\Client;
+use Omnipay\Common\Http\ClientInterface;
 use Omnipay\Common\Item;
 use Omnipay\Common\ItemBag;
-use Omnipay\Omnipay;
 use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
 use Omnipay\Common\Message\ResponseInterface;
+use Omnipay\Omnipay;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Drupal\payment\OperationResultInterface;
 
 /**
  * Provides a basis for payment methods that use Omnipay gateways.
@@ -67,7 +67,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *   The token API.
    * @param \Drupal\payment\Plugin\Payment\Status\PaymentStatusManagerInterface $payment_status_manager
    *   The payment status manager.
-   * @param \Guzzle\Http\ClientInterface $http_client
+   * @param \Omnipay\Common\Http\ClientInterface $http_client
    *   The HTTP client.
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
@@ -112,14 +112,12 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   public static function create(ContainerInterface $container, array $configuration, $plugin_id, $plugin_definition) {
     $containerClient = $container->get('http_client');
 
-    // Onmipay 2.x Client class is \Guzzle\Http\ClientInterface.
+    // Onmipay 3.x Client class is Omnipay\Common\Http\ClientInterface.
     if ($containerClient instanceof ClientInterface) {
       $client = $containerClient;
     }
     else {
-      $config = $containerClient->getConfig();
-      // Create a new instance and use the passed instance's configuration.
-      $client = new Client('', $config);
+      $client = new Client($containerClient);
     }
 
     return new static(
@@ -222,8 +220,10 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     /** @var \Omnipay\Common\Message\RequestInterface $request */
     $request = $this->gateway->purchase($configuration);
+    // Not all gateways support send() so use sendData().
+    $data = $request->getData();
     /** @var \Omnipay\Common\Message\ResponseInterface $response */
-    $response = $request->send();
+    $response = $request->sendData($data);
 
     if (!($response instanceof ResponseInterface)) {
       $response = $this->process($response);

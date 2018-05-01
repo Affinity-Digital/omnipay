@@ -1,10 +1,11 @@
 # Pay Pal Provider
-The Omnipay library provides three payment gateways
+The Omnipay library provides four payment gateways
 * PayPal_Express (PayPal Express Checkout)
+* PayPal_ExpressInContext (PayPal Express In-Context Checkout)
 * PayPal_Pro (PayPal Website Payments Pro)
 * PayPal_Rest (Paypal Rest API)
 
-Only Rest is currently implemented.
+Only Rest is currently fully implemented.
 
 # Method Configuration
 ## Rest

@@ -6,24 +6,44 @@ use Drupal\Component\Utility\NestedArray;
 use Drupal\Core\Form\FormStateInterface;
 
 /**
- * Provides the configuration for the PayPal Standard payment method plugin.
+ * Provides the configuration for the PayPal Pro payment method plugin.
  *
  * @PaymentMethodConfiguration(
- *   description = @Translation("PayPal Standard payment method type."),
+ *   description = @Translation("PayPal Pro payment method type."),
  *   id = "omnipay_paypal_standard",
- *   label = @Translation("PayPal Standard (Omnipay)")
+ *   label = @Translation("PayPal Pro (Omnipay)")
  * )
  */
 class PayPalStandard extends PayPalBasic {
 
   /**
-   * Gets the email of this configuration.
+   * Gets the username of this configuration.
    *
    * @return string
-   *   Configured Email address.
+   *   Configured user name.
    */
-  public function getEmail() {
-    return isset($this->configuration['email']) ? $this->configuration['email'] : '';
+  public function getUsername() {
+    return isset($this->configuration['username']) ? $this->configuration['username'] : '';
+  }
+
+  /**
+   * Gets the password of this configuration.
+   *
+   * @return string
+   *   Configured password.
+   */
+  public function getPassword() {
+    return isset($this->configuration['password']) ? $this->configuration['password'] : '';
+  }
+
+  /**
+   * Gets the signature of this configuration.
+   *
+   * @return string
+   *   Configured signature.
+   */
+  public function getSignature() {
+    return isset($this->configuration['signature']) ? $this->configuration['signature'] : '';
   }
 
   /**
@@ -32,10 +52,24 @@ class PayPalStandard extends PayPalBasic {
   public function processBuildConfigurationForm(array &$element, FormStateInterface $form_state, array &$form) {
     parent::processBuildConfigurationForm($element, $form_state, $form);
 
-    $element['paypal']['email'] = [
+    $element['paypal']['username'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Username'),
+      '#default_value' => $this->getUsername(),
+      '#maxlength' => 255,
+      '#required' => TRUE,
+    ];
+    $element['paypal']['password'] = [
+      '#type' => 'textfield',
+      '#title' => $this->t('Password'),
+      '#default_value' => $this->getPassword(),
+      '#maxlength' => 255,
+      '#required' => TRUE,
+    ];
+    $element['paypal']['signature'] = [
       '#type' => 'email',
-      '#title' => $this->t('Email'),
-      '#default_value' => $this->getEmail(),
+      '#title' => $this->t('Signature'),
+      '#default_value' => $this->getSignature(),
       '#maxlength' => 255,
       '#required' => TRUE,
     ];
@@ -50,10 +84,12 @@ class PayPalStandard extends PayPalBasic {
     parent::submitConfigurationForm($form, $form_state);
 
     $parents = $form['plugin_form']['paypal']['#parents'];
-    array_pop($parents);
+    \array_pop($parents);
     $values = $form_state->getValues();
     $values = NestedArray::getValue($values, $parents);
-    $this->configuration['email'] = $values['paypal']['email'];
+    $this->configuration['username'] = $values['paypal']['username'];
+    $this->configuration['password'] = $values['paypal']['password'];
+    $this->configuration['signature'] = $values['paypal']['signature'];
   }
 
   /**
@@ -61,7 +97,9 @@ class PayPalStandard extends PayPalBasic {
    */
   public function getDerivativeConfiguration() {
     return parent::getDerivativeConfiguration() + [
-      'email' => $this->getEmail(),
+      'username' => $this->getUserame(),
+      'password' => $this->getPassword(),
+      'signature' => $this->getSignature(),
     ];
   }
 

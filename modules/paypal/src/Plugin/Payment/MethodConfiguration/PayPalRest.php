@@ -77,7 +77,7 @@ class PayPalRest extends PayPalBasic {
     parent::submitConfigurationForm($form, $form_state);
 
     $parents = $form['plugin_form']['paypal']['#parents'];
-    array_pop($parents);
+    \array_pop($parents);
     $values = $form_state->getValues();
     $values = NestedArray::getValue($values, $parents);
     $this->configuration['clientId'] = $values['paypal']['clientId'];

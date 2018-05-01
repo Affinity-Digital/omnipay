@@ -8,8 +8,11 @@ PHP library
 Each of the payment providers are in their own module. The different supported
 payment methods by that provider are in the module.
 
+The [Drupal module omnipay](https://www.drupal.org/project/omnipay) has not had
+any development since [16 Jul 2014 at 19:28 UTC](https://cgit.drupalcode.org/omnipay/commit/src/Plugin/Payment/Method/AbstractPaymentMethodBase.php?id=35979787741d04e96baa8753ef8776c87a241df8).
+
 # Omnipay Library Version
-Currently this uses the latest version of the 2.x library.
+Currently this uses the latest version of the developing 3.x library.
 
 # Naming conventions
 
@@ -18,33 +21,33 @@ Drupal\\omnipay__provider_\\...
 
 for example
 
-<code>
+```php
 namespace Drupal\omnipay_paypal\Plugin\Payment\Method;
 
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
-</code>
+```
 
 ## routing namespace path
 /omnipay/_provider_/...
 
 for example
 
-<code>
+```yaml
   path: '/omnipay/paypal/redirect/success/{payment}'
 
   path: '/omnipay/sagepay/notify'
-</code>
+```
 
 ## payment id namespace
-omnipay__provider___method_
+omnipay__provider__method_
 
 for example
 
-<code>
-  id = "omnipay\_paypal\_rest",
+```php
+  $id = "omnipay_paypal_rest",
 
-  id = "omnipay\_sagepay\_server",
-</code>
+  $id = "omnipay_sagepay_server",
+```
 
 # Generic Payment Method Configuration
 There is a checkbox to indicate whether the system is to set the payment gateway
@@ -75,6 +78,18 @@ Drupal\omnipay\Plugin\Payment\MethodConfiguration\OmnipayBasic
 
 ## composer.json
 Add the specific omnipay package to this module's composer.json
+
+### Omnipay Sagepay
+As this is using the development version of omnipay Sagepay, the following needs
+to be added to the root composer.json as the [pull request](https://github.com/thephpleague/omnipay-sagepay/pull/94)
+has not been actioned at the time of writing.
+
+```json
+ {
+      "type" : "git",
+      "url" : "https://github.com/judgej/omnipay-sagepay"
+ },
+```
 
 # Acknowledgements
 * The [Omnipay](https://omnipay.thephpleague.com/) library developers.

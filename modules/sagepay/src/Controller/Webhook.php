@@ -7,8 +7,8 @@ use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
 use Drupal\payment\Entity\PaymentInterface;
 use Drupal\payment\Payment;
-use Guzzle\Http\Client;
-use Guzzle\Http\ClientInterface;
+use Omnipay\Common\Http\Client;
+use Omnipay\Common\Http\ClientInterface;
 use Omnipay\Common\GatewayFactory;
 use Omnipay\SagePay\Message\ServerNotifyRequest;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -119,14 +119,13 @@ class Webhook extends ControllerBase {
   public function notify(Request $request) {
     $containerClient = \Drupal::service('http_client');
 
-    // Onmipay 2.x Client class is \Guzzle\Http\ClientInterface.
+    // Onmipay 3.x Client class is \Omnipay\Common\Http\ClientInterface.
     if ($containerClient instanceof ClientInterface) {
       $client = $containerClient;
     }
     else {
-      $config = $containerClient->getConfig();
       // Create a new instance and use the passed instance's configuration.
-      $client = new Client('', $config);
+      $client = new Client($containerClient);
     }
 
     /** @var \Omnipay\SagePay\ServerGateway $gateway */

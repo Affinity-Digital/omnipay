@@ -6,8 +6,8 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
 use Drupal\payment\Entity\PaymentInterface;
-use Guzzle\Http\Client;
-use Guzzle\Http\ClientInterface;
+use Omnipay\Common\Http\Client;
+use Omnipay\Common\Http\ClientInterface;
 use Omnipay\Common\GatewayFactory;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,14 +34,14 @@ class Redirect extends ControllerBase {
   /**
    * Client object.
    *
-   * @var \Guzzle\Http\ClientInterface
+   * @var Omnipay\Common\Http\ClientInterfacee
    */
   protected $client;
 
   /**
    * Construct the class using passed parameters.
    *
-   * @param \Guzzle\Http\ClientInterface $http_client
+   * @param \Omnipay\Common\Http\ClientInterface $http_client
    *   The HTTP client.
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request.
@@ -70,14 +70,12 @@ class Redirect extends ControllerBase {
   public static function create(ContainerInterface $container) {
     $containerClient = $container->get('http_client');
 
-    // Onmipay 2.x Client class is \Guzzle\Http\ClientInterface.
+    // Onmipay 3.x Client class is \Omnipay\Common\Http\ClientInterface.
     if ($containerClient instanceof ClientInterface) {
       $client = $containerClient;
     }
     else {
-      $config = $containerClient->getConfig();
-      // Create a new instance and use the passed instance's configuration.
-      $client = new Client('', $config);
+      $client = new Client($containerClient);
     }
 
     return new static(
@@ -110,7 +108,7 @@ class Redirect extends ControllerBase {
   /**
    * Return the current client to use.
    *
-   * @return \Guzzle\Http\ClientInterface
+   * @return \Omnipay\Common\Http\ClientInterface
    *   Requested client connection to use.
    */
   public function getClient() {
@@ -120,7 +118,7 @@ class Redirect extends ControllerBase {
   /**
    * Set the database connection object.
    *
-   * @param \Guzzle\Http\ClientInterface $client
+   * @param \Omnipay\Common\Http\ClientInterface $client
    *   Client to use.
    */
   public function setClient(ClientInterface $client) {

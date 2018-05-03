@@ -38,21 +38,24 @@ class PayPalRest extends PayPalBasic {
     }
 
     if ($this->getPayment()) {
-      $configuration['returnUrl'] = Url::fromRoute(
-        'omnipay.paypal.redirect.success',
-        ['payment' => $this->getPayment()->id()],
-        ['absolute' => TRUE, 'https' => TRUE]
+      $id = $this->getPayment()->id();
+      if (!empty($id)) {
+        $configuration['returnUrl'] = Url::fromRoute(
+          'omnipay.paypal.redirect.success',
+          ['payment' => $id],
+          ['absolute' => TRUE, 'https' => TRUE]
         )
-        ->toString(TRUE)
-        ->getGeneratedUrl();
+          ->toString(TRUE)
+          ->getGeneratedUrl();
 
-      $configuration['cancelUrl'] = Url::fromRoute(
-        'omnipay.paypal.redirect.cancel',
-        ['payment' => $this->getPayment()->id()],
-        ['absolute' => TRUE, 'https' => TRUE]
+        $configuration['cancelUrl'] = Url::fromRoute(
+          'omnipay.paypal.redirect.cancel',
+          ['payment' => $id],
+          ['absolute' => TRUE, 'https' => TRUE]
         )
-        ->toString(TRUE)
-        ->getGeneratedUrl();
+          ->toString(TRUE)
+          ->getGeneratedUrl();
+      }
 
       $configuration['description'] = $this->getPayment()->label();
     }

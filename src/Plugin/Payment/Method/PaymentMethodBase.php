@@ -265,6 +265,17 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
         )
         ->save();
 
+      if ($payment_status == 'payment_failed') {
+        $data = $response->getData();
+        if (\is_array($data)) {
+          $message = [];
+          foreach ($data as $key => $value) {
+            $message[] = $key . ' => ' . $value;
+          }
+          \Drupal::logger('omnipay')->error(\implode("\n", $message));
+        }
+      }
+
       $response = $this
         ->getPayment()
         ->getPaymentType()

@@ -210,9 +210,12 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     $this->gateway->setTestMode(!$this->isProduction());
 
+    $description = $this->payment->label();
+    $description = (strlen($description) > 100) ? substr($description,0,97).'...' : $description;
+    
     $configuration = $this->getConfiguration();
     $configuration['amount'] = $this->payment->getAmount();
-    $configuration['description'] = $this->payment->label();
+    $configuration['description'] = $description;
     $configuration['currency'] = $this->getCurrency();
     $configuration['transactionId'] = $this->getTransactionId();
     $configuration['items'] = $items->all();

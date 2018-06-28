@@ -193,15 +193,21 @@ class Webhook extends ControllerBase {
                 )
                 ->save();
               break;
-
+              
+              // If the user decided to cancel the transaction whilst
+              // ... on our payment pages.
+            case 'ABORT':
+              $payment
+                ->setPaymentStatus(
+                  Payment::statusManager()->createInstance('payment_cancelled')
+                )
+                ->save();
+              break;
             // If the authorisation was failed by the bank.
             case 'NOTAUTHED':
 
               // If your fraud screening rules were not met.
             case 'REJECTED':
-              // If the user decided to cancel the transaction whilst
-              // ... on our payment pages.
-            case 'ABORT':
               // If an error has occurred at Sage Pay.
               // These are very infrequent, but your site should handle them
               // anyway. They normally indicate a problem with bank connectivity.

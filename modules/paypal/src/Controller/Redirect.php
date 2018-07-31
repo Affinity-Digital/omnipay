@@ -66,7 +66,7 @@ class Redirect extends ControllerBase {
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
    *   Dependancy Container.
    *
-   * @return \Drupal\omnipay_sagepay\Controller\Webhook
+   * @return \Drupal\omnipay_paypal\Controller\Redirect
    *   Instance of this object to use.
    */
   public static function create(ContainerInterface $container) {
@@ -215,8 +215,11 @@ class Redirect extends ControllerBase {
       $request
     );
 
-    /** @var \Drupal\omnipay\Plugin\Payment\Method\PayPalBasic $payment_method */
+    /** @var \Drupal\omnipay_paypal\Plugin\Payment\Method\PayPalBasic $payment_method */
     $payment_method = $payment->getPaymentMethod();
+
+    $payment_method->setGateway($gateway);
+    $configuration = $payment_method->getConfiguration();
 
     // Once the transaction has been approved, we need to complete it.
     /** @var \Omnipay\PayPal\Message\AbstractRestRequest $transaction */

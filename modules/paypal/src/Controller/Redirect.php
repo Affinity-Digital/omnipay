@@ -195,21 +195,11 @@ class Redirect extends ControllerBase {
    *   The response to the action.
    */
   public function execute(PaymentInterface $payment) {
-    /** @var \Drupal\Core\Database\Query\SelectInterface $select */
-    $select = $this
-      ->getConnection()
-      ->select('omnipay', 'o');
-
-    $info = $select
-      ->condition('tref', $this->getRequest()->get('paymentId'))
-      ->fields('o', ['tid'])
-      ->execute()
-      ->fetchAssoc();
-
     $request = $this->getRequest();
 
+    $gatewayFactory = new GatewayFactory();
     /** @var \Omnipay\PayPal\RestGateway $gateway */
-    $gateway = GatewayFactory::create(
+    $gateway = $gatewayFactory->create(
       'PayPal_Rest',
       $this->getClient(),
       $request
@@ -225,7 +215,7 @@ class Redirect extends ControllerBase {
     /** @var \Omnipay\PayPal\Message\AbstractRestRequest $transaction */
     $transaction = $gateway->completePurchase([
       'payer_id' => $request->get('PayerID'),
-      'transactionReference' => $info['tid'],
+      'transactionReference' => $request->get('paymentId'),
     ]);
     $response = $transaction->send();
     if ($response->isSuccessful()) {

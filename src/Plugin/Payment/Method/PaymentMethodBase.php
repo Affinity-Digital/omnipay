@@ -187,7 +187,12 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public function getConfiguration() {
-    return \array_merge(parent::getConfiguration(), $this->gateway->getParameters());
+    $configuration = \array_merge(parent::getConfiguration(), $this->gateway->getParameters());
+
+    $definition = $this->getPluginDefinition();
+    $configuration['testMode'] = !$definition['production'];
+
+    return $configuration;
   }
 
   /**

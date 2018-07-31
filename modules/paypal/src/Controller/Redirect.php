@@ -221,6 +221,11 @@ class Redirect extends ControllerBase {
     if ($response->isSuccessful()) {
       // The customer has successfully paid.
       $payment_method->doCapturePayment();
+      $payment
+        ->setPaymentStatus(
+          Payment::statusManager()->createInstance('payment_success')
+        )
+        ->save();
     }
     else {
       // There was an error returned by completePurchase().  You should

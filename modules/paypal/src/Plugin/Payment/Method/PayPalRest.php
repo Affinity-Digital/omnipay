@@ -62,6 +62,7 @@ class PayPalRest extends PayPalBasic {
 
     $this->gateway->setClientId($configuration['clientId']);
     $this->gateway->setSecret($configuration['secret']);
+    $this->gateway->setTestMode(!$configuration['production']);
     $configuration['token'] = $this->gateway->getToken();
 
     return $configuration;

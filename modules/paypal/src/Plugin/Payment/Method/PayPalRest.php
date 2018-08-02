@@ -26,6 +26,7 @@ class PayPalRest extends PayPalBasic {
    * {@inheritdoc}
    */
   public function getConfiguration() {
+
     $configuration = parent::getConfiguration();
 
     $definition = $this->getPluginDefinition();
@@ -61,7 +62,6 @@ class PayPalRest extends PayPalBasic {
 
     $this->gateway->setClientId($configuration['clientId']);
     $this->gateway->setSecret($configuration['secret']);
-    $this->gateway->setTestMode($configuration['testMode']);
     $configuration['token'] = $this->gateway->getToken();
 
     return $configuration;

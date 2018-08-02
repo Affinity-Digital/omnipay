@@ -6,7 +6,6 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Url;
 use Drupal\Core\Utility\Token;
-use Drupal\omnipay\Response\GenericResponseWrapper;
 use Drupal\payment\EventDispatcherInterface;
 use Drupal\payment\OperationResult;
 use Drupal\payment\OperationResultInterface;
@@ -188,12 +187,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public function getConfiguration() {
-    $configuration = \array_merge(parent::getConfiguration(), $this->gateway->getParameters());
-
-    $definition = $this->getPluginDefinition();
-    $configuration['testMode'] = !$definition['production'];
-
-    return $configuration;
+    return \array_merge(parent::getConfiguration(), $this->gateway->getParameters());
   }
 
   /**
@@ -297,11 +291,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * {@inheritdoc}
    */
   public function getPaymentExecutionResult() {
-    if (is_subclass_of($this->paymentExecutionResult, 'Drupal\payment\Response\ResponseInterface') ) {
-      return new OperationResult($this->paymentExecutionResult);
-    }
-
-    return new OperationResult(new GenericResponseWrapper($this->paymentExecutionResult));
+    return new OperationResult($this->paymentExecutionResult);
   }
 
   /**

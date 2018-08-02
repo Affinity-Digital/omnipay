@@ -128,10 +128,8 @@ class Webhook extends ControllerBase {
       $client = new OmnipayClient(Client::createWithConfig($config));
     }
 
-    $gatewayFactory = new GatewayFactory();
-
     /** @var \Omnipay\SagePay\ServerGateway $gateway */
-    $gateway = $gatewayFactory->create(
+    $gateway = GatewayFactory::create(
       'SagePay_Server',
       $client,
       $request

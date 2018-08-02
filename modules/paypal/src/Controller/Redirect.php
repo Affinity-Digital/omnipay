@@ -6,7 +6,6 @@ use Drupal\Core\Access\AccessResult;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Database\Connection;
 use Drupal\payment\Entity\PaymentInterface;
-use Drupal\payment\Payment;
 use Http\Adapter\Guzzle6\Client;
 use Omnipay\Common\GatewayFactory;
 use Omnipay\Common\Http\Client as OmnipayClient;
@@ -66,7 +65,7 @@ class Redirect extends ControllerBase {
    * @param \Symfony\Component\DependencyInjection\ContainerInterface $container
    *   Dependancy Container.
    *
-   * @return \Drupal\omnipay_paypal\Controller\Redirect
+   * @return \Drupal\omnipay_sagepay\Controller\Webhook
    *   Instance of this object to use.
    */
   public static function create(ContainerInterface $container) {
@@ -195,37 +194,39 @@ class Redirect extends ControllerBase {
    *   The response to the action.
    */
   public function execute(PaymentInterface $payment) {
+    /** @var \Drupal\Core\Database\Query\SelectInterface $select */
+    $select = $this
+      ->getConnection()
+      ->select('omnipay', 'o');
+
+    $info = $select
+      ->condition('tref', $this->getRequest()->get('paymentId'))
+      ->fields('o', ['tid'])
+      ->execute()
+      ->fetchAssoc();
+
     $request = $this->getRequest();
 
-    $gatewayFactory = new GatewayFactory();
     /** @var \Omnipay\PayPal\RestGateway $gateway */
-    $gateway = $gatewayFactory->create(
+    $gateway = GatewayFactory::create(
       'PayPal_Rest',
       $this->getClient(),
       $request
     );
 
-    /** @var \Drupal\omnipay_paypal\Plugin\Payment\Method\PayPalBasic $payment_method */
+    /** @var \Drupal\omnipay\Plugin\Payment\Method\PayPalBasic $payment_method */
     $payment_method = $payment->getPaymentMethod();
-
-    $payment_method->setGateway($gateway);
-    $configuration = $payment_method->getConfiguration();
 
     // Once the transaction has been approved, we need to complete it.
     /** @var \Omnipay\PayPal\Message\AbstractRestRequest $transaction */
     $transaction = $gateway->completePurchase([
       'payer_id' => $request->get('PayerID'),
-      'transactionReference' => $request->get('paymentId'),
+      'transactionReference' => $info['tid'],
     ]);
     $response = $transaction->send();
     if ($response->isSuccessful()) {
       // The customer has successfully paid.
       $payment_method->doCapturePayment();
-      $payment
-        ->setPaymentStatus(
-          Payment::statusManager()->createInstance('payment_success')
-        )
-        ->save();
     }
     else {
       // There was an error returned by completePurchase().  You should

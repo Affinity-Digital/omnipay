@@ -23,28 +23,28 @@ abstract class AbstractPaymentMethodBase extends PaymentMethodBase implements Pa
   /**
    * {@inheritdoc}
    */
-  public function doRefundPaymentAccess(AccountInterface $account) {
+  protected function doRefundPaymentAccess(AccountInterface $account) {
     return $this->gateway->supportsRefund();
   }
 
   /**
    * {@inheritdoc}
    */
-  public function doRefundPayment() {
+  protected function doRefundPayment() {
     return $this->gateway->refund();
   }
 
   /**
    * {@inheritdoc}
    */
-  public function doCapturePaymentAccess(AccountInterface $account) {
+  protected function doCapturePaymentAccess(AccountInterface $account) {
     return $this->gateway->supportsCapture();
   }
 
   /**
    * {@inheritdoc}
    */
-  public function doCapturePayment() {
+  protected function doCapturePayment() {
     return $this->gateway->capture();
   }
 

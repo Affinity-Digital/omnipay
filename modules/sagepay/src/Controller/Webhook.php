@@ -13,6 +13,7 @@ use Omnipay\Common\Http\Client as OmnipayClient;
 use Omnipay\Common\Http\ClientInterface;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Handles the "webhook" route.
@@ -101,6 +102,9 @@ class Webhook extends ControllerBase {
    *   The request from Sage Pay.
    * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   The payment that is being worked on.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   Replies with a reponse object.
    */
   public function finished(Request $request, PaymentInterface $payment) {
     return $payment->getPaymentType()->getResumeContextResponse()->getResponse();
@@ -112,8 +116,12 @@ class Webhook extends ControllerBase {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   Request structure.
    *
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse
-   *   Where to redirect to.
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   Replies to Sage Pay with expected information.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function notify(Request $request) {
     $containerClient = \Drupal::service('http_client');
@@ -240,8 +248,8 @@ class Webhook extends ControllerBase {
       ['absolute' => TRUE, 'https' => TRUE]
     );
     $content = 'Status=' . $status . PHP_EOL . 'RedirectURL=' . $redirection->getTargetUrl();
-    echo $content;
-    exit;
+
+    return new Response($content);
   }
 
 }

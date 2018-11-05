@@ -114,7 +114,7 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    * Limits the description text to 100 characters or less.
    *
    * @param string $description
-   *   Current description string
+   *   Current description string.
    * @param int $limit
    *   Optional description character limit.
    *

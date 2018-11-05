@@ -40,7 +40,7 @@ abstract class PayPalBasic extends GatewayFactoryAbstractPaymentMethodBase {
    * Limits the description text to 127 characters or less.
    *
    * @param string $description
-   *   Current description string
+   *   Current description string.
    * @param int $limit
    *   Optional description character limit.
    *
@@ -52,6 +52,5 @@ abstract class PayPalBasic extends GatewayFactoryAbstractPaymentMethodBase {
   public function preprocessDescription($description, $limit = 127) {
     return parent::preprocessDescription($description, $limit);
   }
-
 
 }

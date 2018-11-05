@@ -27,13 +27,6 @@ class Redirect extends ControllerBase {
   protected $connection;
 
   /**
-   * Request object.
-   *
-   * @var \Symfony\Component\HttpFoundation\Request
-   */
-  protected $request;
-
-  /**
    * Client object.
    *
    * @var \Omnipay\Common\Http\ClientInterface
@@ -45,18 +38,14 @@ class Redirect extends ControllerBase {
    *
    * @param \Omnipay\Common\Http\ClientInterface $http_client
    *   The HTTP client.
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *   The request.
    * @param \Drupal\Core\Database\Connection $connection
    *   The current Database connection.
    */
   public function __construct(
       ClientInterface $http_client,
-      Request $request,
       Connection $connection
   ) {
     $this->setConnection($connection);
-    $this->setRequest($request);
     $this->setClient($http_client);
   }
 
@@ -83,7 +72,6 @@ class Redirect extends ControllerBase {
 
     return new static(
       $client,
-      $container->get('request_stack')->getCurrentRequest(),
       \Drupal::database()
     );
   }
@@ -129,26 +117,6 @@ class Redirect extends ControllerBase {
   }
 
   /**
-   * Return the current request object to use.
-   *
-   * @return \Symfony\Component\HttpFoundation\Request
-   *   Request object to use.
-   */
-  public function getRequest() {
-    return $this->request;
-  }
-
-  /**
-   * Set the request object.
-   *
-   * @param \Symfony\Component\HttpFoundation\Request $request
-   *   Request object to use.
-   */
-  public function setRequest(Request $request) {
-    $this->request = $request;
-  }
-
-  /**
    * Determine if access is allowed.
    *
    * @param \Drupal\payment\Entity\PaymentInterface $payment
@@ -177,7 +145,7 @@ class Redirect extends ControllerBase {
       ->fetchAssoc();
 
     return (
-      ($payment->getOwnerId() == \Drupal::currentUser()->id())
+      ($payment->getOwnerId() == $this->currentUser()->id())
       && ($info['pid'] == $payment->id())
     );
   }
@@ -188,15 +156,17 @@ class Redirect extends ControllerBase {
    * At this point we don't know the status of the payment yet so we can only
    * load the payment and give control back to the payment context.
    *
+   * @param \Symfony\Component\HttpFoundation\Request $request
+   *   Request structure.
    * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   The payment we are dealing with.
    *
    * @return \Symfony\Component\HttpFoundation\Response
    *   The response to the action.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
-  public function execute(PaymentInterface $payment) {
-    $request = $this->getRequest();
-
+  public function execute(Request $request, PaymentInterface $payment) {
     $gatewayFactory = new GatewayFactory();
     /** @var \Omnipay\PayPal\RestGateway $gateway */
     $gateway = $gatewayFactory->create(
@@ -209,7 +179,6 @@ class Redirect extends ControllerBase {
     $payment_method = $payment->getPaymentMethod();
 
     $payment_method->setGateway($gateway);
-    $configuration = $payment_method->getConfiguration();
 
     // Once the transaction has been approved, we need to complete it.
     /** @var \Omnipay\PayPal\Message\AbstractRestRequest $transaction */
@@ -249,6 +218,8 @@ class Redirect extends ControllerBase {
    *
    * @return \Symfony\Component\HttpFoundation\Response
    *   The response object.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function cancel(PaymentInterface $payment) {
     $payment

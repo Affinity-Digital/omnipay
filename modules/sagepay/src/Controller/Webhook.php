@@ -28,13 +28,26 @@ class Webhook extends ControllerBase {
   protected $connection;
 
   /**
-   * Construct the class using passed paramters.
+   * Client object.
    *
-   * @param \Drupal\Core\Database\Connection $connection
-   *   Database connection object.
+   * @var \Omnipay\Common\Http\ClientInterface
    */
-  public function __construct(Connection $connection) {
+  protected $client;
+
+  /**
+   * Construct the class using passed parameters.
+   *
+   * @param \Omnipay\Common\Http\ClientInterface $http_client
+   *   The HTTP client.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   The current Database connection.
+   */
+  public function __construct(
+    ClientInterface $http_client,
+    Connection $connection
+  ) {
     $this->setConnection($connection);
+    $this->setClient($http_client);
   }
 
   /**
@@ -47,7 +60,21 @@ class Webhook extends ControllerBase {
    *   Instance of this object to use.
    */
   public static function create(ContainerInterface $container) {
-    return new static(\Drupal::database());
+    $containerClient = $container->get('http_client');
+
+    // Onmipay 3.x Client class is \Omnipay\Common\Http\ClientInterface.
+    if ($containerClient instanceof ClientInterface) {
+      $client = $containerClient;
+    }
+    else {
+      $config = $containerClient->getConfig();
+      $client = new OmnipayClient(Client::createWithConfig($config));
+    }
+
+    return new static(
+      $client,
+      \Drupal::database()
+    );
   }
 
   /**
@@ -71,6 +98,26 @@ class Webhook extends ControllerBase {
   }
 
   /**
+   * Return the current client to use.
+   *
+   * @return \Omnipay\Common\Http\ClientInterface
+   *   Requested client connection to use.
+   */
+  public function getClient() {
+    return $this->client;
+  }
+
+  /**
+   * Set the database connection object.
+   *
+   * @param \Omnipay\Common\Http\ClientInterface $client
+   *   Client to use.
+   */
+  public function setClient(ClientInterface $client) {
+    $this->client = $client;
+  }
+
+  /**
    * Determine if access is allowed.
    *
    * @param \Drupal\payment\Entity\PaymentInterface $payment
@@ -87,9 +134,7 @@ class Webhook extends ControllerBase {
    * {@inheritdoc}
    */
   private function verify(PaymentInterface $payment) {
-    /** @var \Drupal\omnipay_sagepay\Plugin\Payment\Method\SagePayBasic $payment_method */
-    $payment_method = $payment->getPaymentMethod();
-    return $payment->getOwnerId() == \Drupal::currentUser()->id();
+    return $payment->getOwnerId() == $this->currentUser()->id();
   }
 
   /**
@@ -104,7 +149,7 @@ class Webhook extends ControllerBase {
    *   The payment that is being worked on.
    *
    * @return \Symfony\Component\HttpFoundation\Response
-   *   Replies with a reponse object.
+   *   Replies with a response object.
    */
   public function finished(Request $request, PaymentInterface $payment) {
     return $payment->getPaymentType()->getResumeContextResponse()->getResponse();
@@ -124,18 +169,7 @@ class Webhook extends ControllerBase {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function notify(Request $request) {
-    $containerClient = \Drupal::service('http_client');
-
-    // Onmipay 3.x Client class is \Omnipay\Common\Http\ClientInterface.
-    if ($containerClient instanceof ClientInterface) {
-      $client = $containerClient;
-    }
-    else {
-      // Create a new instance and use the passed instance's configuration.
-      $config = $containerClient->getConfig();
-      $client = new OmnipayClient(Client::createWithConfig($config));
-    }
-
+    $client = $this->getClient();
     $gatewayFactory = new GatewayFactory();
 
     /** @var \Omnipay\SagePay\ServerGateway $gateway */

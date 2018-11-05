@@ -216,8 +216,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     $this->gateway->setTestMode(!$this->isProduction());
 
-    $description = $this->payment->label();
-    $description = (strlen($description) > 100) ? substr($description, 0, 97) . '...' : $description;
+    $description = $this->preprocessDescription($this->payment->label());
 
     $configuration = $this->getConfiguration();
     $configuration['amount'] = $this->payment->getAmount();
@@ -538,6 +537,32 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *   The response from the online payment gateway.
    */
   public function updateConfiguration($response) {
+  }
+
+  /**
+   * Give the opportunity for the payment to process the payment description.
+   *
+   * @param string $description
+   *   Current payment description.
+   * @param null|int $limit
+   *   Optionally limit the description to this number of characters.
+   *
+   * @return bool|string
+   *   Optionally limited description string.
+   */
+  public function preprocessDescription($description, $limit = NULL) {
+    if ($limit) {
+      if (strlen($description) > $limit) {
+        $description = substr($description, 0, $limit - 3);
+        $last_space = strripos(' ', $description);
+        if ($last_space !== FALSE) {
+          $description = substr($description, 0, $last_space);
+        }
+        $description .= '...';
+      }
+    }
+
+    return $description;
   }
 
 }

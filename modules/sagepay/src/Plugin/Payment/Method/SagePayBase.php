@@ -97,8 +97,10 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
   /**
    * Update the configuration based upon the response.
    *
-   * @param \Omnipay\Common\Message\ResponseInterface $response
+   * @param \Omnipay\Common\Message\RedirectResponseInterface|\Omnipay\Common\Message\ResponseInterface $response
    *   The response object.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function updateConfiguration($response) {
     $transaction_reference = Json::decode($response->getTransactionReference());
@@ -106,6 +108,21 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
       $this->configuration[$key] = $value;
     }
     $this->getPayment()->save();
+  }
+
+  /**
+   * Limits the description text to 100 characters or less.
+   *
+   * @param string $description
+   *   Current description string
+   * @param int $limit
+   *   Optional description character limit.
+   *
+   * @return mixed
+   *   New description string
+   */
+  public function preprocessDescription($description, $limit = 100) {
+    return parent::preprocessDescription($description, $limit);
   }
 
 }

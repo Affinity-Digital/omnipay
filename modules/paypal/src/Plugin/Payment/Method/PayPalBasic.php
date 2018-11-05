@@ -36,4 +36,22 @@ abstract class PayPalBasic extends GatewayFactoryAbstractPaymentMethodBase {
     return PayPalItem::class;
   }
 
+  /**
+   * Limits the description text to 127 characters or less.
+   *
+   * @param string $description
+   *   Current description string
+   * @param int $limit
+   *   Optional description character limit.
+   *
+   * @return mixed
+   *   New description string
+   *
+   * @see https://developer.paypal.com/docs/api/orders/v1/#definition-purchase_unit
+   */
+  public function preprocessDescription($description, $limit = 127) {
+    return parent::preprocessDescription($description, $limit);
+  }
+
+
 }

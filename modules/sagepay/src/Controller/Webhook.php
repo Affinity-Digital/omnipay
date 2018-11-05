@@ -186,8 +186,9 @@ class Webhook extends ControllerBase {
                 )
                 ->save();
               break;
-              // (for European Payment Types only), if the transaction
-              // ... has yet to be accepted or rejected.
+
+            // (for European Payment Types only), if the transaction
+            // ... has yet to be accepted or rejected.
             case 'PENDING':
               $payment
                 ->setPaymentStatus(
@@ -195,9 +196,9 @@ class Webhook extends ControllerBase {
                 )
                 ->save();
               break;
-              
-              // If the user decided to cancel the transaction whilst
-              // ... on our payment pages.
+
+            // If the user decided to cancel the transaction whilst
+            // ... on our payment pages.
             case 'ABORT':
               $payment
                 ->setPaymentStatus(
@@ -205,6 +206,7 @@ class Webhook extends ControllerBase {
                 )
                 ->save();
               break;
+
             // If the authorisation was failed by the bank.
             case 'NOTAUTHED':
 

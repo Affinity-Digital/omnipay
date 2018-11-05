@@ -121,7 +121,7 @@ class Redirect extends ControllerBase {
   /**
    * Set the database connection object.
    *
-   * @param \Http\Client\HttpClient $client
+   * @param \Omnipay\Common\Http\ClientInterface $client
    *   Client to use.
    */
   public function setClient(ClientInterface $client) {

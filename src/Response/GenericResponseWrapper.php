@@ -3,6 +3,7 @@
 namespace Drupal\omnipay\Response;
 
 use Drupal\payment\Response\ResponseInterface;
+use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 

@@ -3,6 +3,8 @@
 namespace Drupal\omnipay\Response;
 
 use Drupal\payment\Response\ResponseInterface;
+use Symfony\Component\HttpFoundation\Response as HttpResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Class GenericResponseWrapper.
@@ -43,11 +45,18 @@ class GenericResponseWrapper implements ResponseInterface {
   /**
    * Return the current response object.
    *
-   * @return null|\Omnipay\Common\Message\ResponseInterface|\Drupal\payment\Response\ResponseInterface
+   * @return null|\Symfony\Component\HttpFoundation\Response
    *   Current Response object.
    */
   public function getResponse() {
-    return $this->response;
+    if ($url = $this->getRedirectUrl()) {
+      $response = new RedirectResponse($url->toString());
+    }
+    else {
+      $response = new HttpResponse();
+    }
+
+    return $response;
   }
 
 }

@@ -3,9 +3,9 @@
 namespace Drupal\omnipay\Response;
 
 use Drupal\payment\Response\ResponseInterface;
+use Drupal\Core\Routing\TrustedRedirectResponse;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\Response as HttpResponse;
-use Symfony\Component\HttpFoundation\RedirectResponse;
 
 /**
  * Class GenericResponseWrapper.
@@ -51,7 +51,7 @@ class GenericResponseWrapper implements ResponseInterface {
    */
   public function getResponse() {
     if ($url = $this->getRedirectUrl()) {
-      $response = new RedirectResponse($url->toString());
+      $response = new TrustedRedirectResponse($url->toString());
     }
     else {
       $response = new HttpResponse();

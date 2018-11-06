@@ -382,7 +382,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *   The returned response.
    *
    * @return string
-   *   The tranasction reference.
+   *   The transaction reference.
    */
   public function getTransactionReference(ResponseInterface $response) {
     $transaction_reference = $response->getTransactionReference();
@@ -437,13 +437,9 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *
    * @param string $production
    *   New Production value.
-   *
-   * @return \Drupal\omnipay\Plugin\Payment\MethodConfiguration\OmniPayBasic
-   *   Fluent interface.
    */
   public function setProduction($production) {
     $this->configuration['production'] = $production;
-    return $this;
   }
 
   /**

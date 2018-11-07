@@ -49,16 +49,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
   }
 
   /**
-   * Return the configured referrer id.
-   *
-   * @return string
-   *   Configured Referrer Id.
-   */
-  public function getReferrerId() {
-    return empty($this->getPluginDefinition()['referrerId']) ? '' : $this->getPluginDefinition()['referrerId'];
-  }
-
-  /**
    * Generic extract the transaction reference.
    *
    * The transaction reference is a JSON encoded string.
@@ -104,6 +94,16 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    */
   public function preprocessDescription($description, $limit = 100) {
     return parent::preprocessDescription($description, $limit);
+  }
+
+  /**
+   * Payment methods set this to TRUE if they need card details.
+   *
+   * @return bool
+   *   TRUE if card details are needed by payment method.
+   */
+  public function needCard() {
+    return TRUE;
   }
 
 }

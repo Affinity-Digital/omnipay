@@ -20,6 +20,19 @@ Specially for these payment methods, the following is also required
 Specially for this payment methods, the following is also required
 * Encryption Key
 
+# Extra functions 
+
+## Form
+### Mandatory
+PaymentTypeBase::getReturnUrl()
+
+returns \Drupal\Core\Url
+
+### Optional
+PaymentTypeBase::getFailureUrl()
+
+returns \Drupal\Core\Url
+
 # Acknowledgements
 * The [Omnipay](https://omnipay.thephpleague.com/) developers.
 * The [Sagepay Payment](https://www.drupal.org/project/sagepay_payment) Drupal

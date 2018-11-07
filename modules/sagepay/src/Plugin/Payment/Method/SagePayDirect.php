@@ -47,13 +47,13 @@ class SagePayDirect extends SagePayBase {
   }
 
   /**
-   * Payment methods set this to TRUE if they need card details.
+   * Return the configured referrer id.
    *
-   * @return bool
-   *   TRUE if card details are needed by payment method.
+   * @return string
+   *   Configured Referrer Id.
    */
-  public function needCard() {
-    return TRUE;
+  public function getReferrerId() {
+    return empty($this->getPluginDefinition()['referrerId']) ? '' : $this->getPluginDefinition()['referrerId'];
   }
 
 }

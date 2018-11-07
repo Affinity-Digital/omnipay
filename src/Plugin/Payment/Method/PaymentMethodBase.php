@@ -21,6 +21,7 @@ use Omnipay\Common\Item;
 use Omnipay\Common\ItemBag;
 use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
+use Omnipay\Common\Message\RequestInterface;
 use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\Omnipay;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -228,8 +229,17 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $configuration['card'] = $this->getCard();
     }
 
+    // Throw an Exception before we call the function.
+    if (!$this->gateway->supportsPurchase()) {
+      throw new \Exception('Gateway does not support purchase()');
+    }
+
     /** @var \Omnipay\Common\Message\RequestInterface $request */
     $request = $this->gateway->purchase($configuration);
+
+    // Allow the Payment Method to change the request.
+    $this->preProcessRequest($request);
+
     // Not all gateways support send() so use sendData().
     $data = $request->getData();
     /** @var \Omnipay\Common\Message\ResponseInterface $response */
@@ -239,20 +249,22 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $response = $this->process($response);
     }
 
-    // Save some information.
-    $now = \Drupal::time()->getRequestTime();
-    $fields = [
-      'pid' => $this->getPayment()->id(),
-      'tid' => $configuration['transactionId'],
-      'tref' => $this->getPayment()->getPaymentMethod()->getTransactionReference($response),
-      'created' => $now,
-      'changed' => $now,
-    ];
-    $this
-      ->getConnection()
-      ->insert('omnipay')
-      ->fields($fields)
-      ->execute();
+    if ($tref = $this->getTransactionReference($response)) {
+      // Save some information.
+      $now = \Drupal::time()->getRequestTime();
+      $fields = [
+        'pid' => $this->getPayment()->id(),
+        'tid' => $configuration['transactionId'],
+        'tref' => $tref,
+        'created' => $now,
+        'changed' => $now,
+      ];
+      $this
+        ->getConnection()
+        ->insert('omnipay')
+        ->fields($fields)
+        ->execute();
+    }
 
     $this->setConfiguration($this->gateway->getParameters());
 
@@ -560,5 +572,13 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     return $description;
   }
+
+  /**
+   * Allow the Payment Method access to the request object.
+   *
+   * @param \Omnipay\Common\Message\RequestInterface $request
+   *   The request object created for this payment.
+   */
+  public function preProcessRequest(RequestInterface &$request) {}
 
 }

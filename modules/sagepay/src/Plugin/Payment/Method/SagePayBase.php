@@ -2,7 +2,6 @@
 
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 
-use Drupal\Core\Url;
 use Drupal\omnipay\Plugin\Payment\Method\GatewayFactoryAbstractPaymentMethodBase;
 use Drupal\Component\Serialization\Json;
 use Omnipay\Common\Message\ResponseInterface;
@@ -17,7 +16,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    */
   public function doExecutePayment() {
     $this->gateway->setVendor($this->getVendorName());
-    $this->gateway->setReferrerId($this->getReferrerId());
 
     parent::doExecutePayment();
   }
@@ -36,13 +34,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
         $configuration[$key] = $definition[$key];
       }
     }
-
-    $configuration['notifyUrl'] = Url::fromRoute(
-      'omnipay.sagepay.redirect.notify',
-      [],
-      ['absolute' => TRUE, 'https' => TRUE]
-    )
-      ->toString();
 
     return $configuration;
   }
@@ -82,16 +73,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
   public function getTransactionReference(ResponseInterface $response) {
     $transaction_reference = Json::decode($response->getTransactionReference());
     return $transaction_reference['VPSTxId'];
-  }
-
-  /**
-   * Payment methods set this to TRUE if they need card details.
-   *
-   * @return bool
-   *   TRUE if card details are needed by payment method.
-   */
-  public function needCard() {
-    return TRUE;
   }
 
   /**

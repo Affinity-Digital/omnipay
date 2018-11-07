@@ -3,6 +3,6 @@
   "type" : "drupal-module",
   "require" : {
     "omnipay/paypal" : "^3.0",
-    "omnipay/sagepay" : "^3.0"
+    "omnipay/sagepay" : "^3.2"
   }
 }

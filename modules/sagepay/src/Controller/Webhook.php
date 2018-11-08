@@ -11,6 +11,7 @@ use Http\Adapter\Guzzle6\Client;
 use Omnipay\Common\GatewayFactory;
 use Omnipay\Common\Http\Client as OmnipayClient;
 use Omnipay\Common\Http\ClientInterface;
+use Omnipay\SagePay\ConstantsInterface as SagePayConstants;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -216,12 +217,12 @@ class Webhook extends ControllerBase {
         /** @var \Omnipay\SagePay\Message\ServerNotifyRequest $sagepay */
         $sagepay = $gateway->acceptNotification($parameters);
 
-        $status = 'INVALID';
+        $status = SagePayConstants::SAGEPAY_STATUS_INVALID;
         if ($sagepay->isValid()) {
-          $status = 'OK';
+          $status = SagePayConstants::SAGEPAY_STATUS_OK;
           switch ($sagepay->getStatus()) {
             // If the transaction was authorised.
-            case 'OK':
+            case SagePayConstants::SAGEPAY_STATUS_OK:
               $payment
                 ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_success')
@@ -231,7 +232,7 @@ class Webhook extends ControllerBase {
 
             // (for European Payment Types only), if the transaction
             // ... has yet to be accepted or rejected.
-            case 'PENDING':
+            case SagePayConstants::SAGEPAY_STATUS_PENDING:
               $payment
                 ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_pending')
@@ -241,7 +242,7 @@ class Webhook extends ControllerBase {
 
             // If the user decided to cancel the transaction whilst
             // ... on our payment pages.
-            case 'ABORT':
+            case SagePayConstants::SAGEPAY_STATUS_ABORT:
               $payment
                 ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_cancelled')
@@ -250,14 +251,14 @@ class Webhook extends ControllerBase {
               break;
 
             // If the authorisation was failed by the bank.
-            case 'NOTAUTHED':
+            case SagePayConstants::SAGEPAY_STATUS_NOTAUTHED:
 
               // If your fraud screening rules were not met.
-            case 'REJECTED':
+            case SagePayConstants::SAGEPAY_STATUS_REJECTED:
               // If an error has occurred at Sage Pay.
               // These are very infrequent, but your site should handle them
               // anyway. They normally indicate a problem with bank connectivity.
-            case 'ERROR':
+            case SagePayConstants::SAGEPAY_STATUS_ERROR:
             default:
               $this
                 ->getLogger('omnipay_sagepay_payment')

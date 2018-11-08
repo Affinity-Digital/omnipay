@@ -26,7 +26,7 @@ class GenericResponseWrapper implements ResponseInterface {
   /**
    * GenericResponseWrapper constructor.
    *
-   * @param $response
+   * @param mixed $response
    *   Response object.
    */
   public function __construct($response) {

@@ -2,6 +2,8 @@
 
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 
+use Drupal\Core\Url;
+
 /**
  * SagePay Direct payment method.
  *

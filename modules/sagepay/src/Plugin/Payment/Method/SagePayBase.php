@@ -74,11 +74,12 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function updateConfiguration($response) {
-    $transaction_reference = Json::decode($response->getTransactionReference());
-    foreach ($transaction_reference as $key => $value) {
-      $this->configuration[$key] = $value;
+    if ($transaction_reference = Json::decode($response->getTransactionReference())) {
+      foreach ($transaction_reference as $key => $value) {
+        $this->configuration[$key] = $value;
+      }
+      $this->getPayment()->save();
     }
-    $this->getPayment()->save();
   }
 
   /**

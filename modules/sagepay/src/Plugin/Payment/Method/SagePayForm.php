@@ -2,7 +2,7 @@
 
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 
-use Omnipay\Common\Message\RequestInterface;
+use Omnipay\Common\Message\ResponseInterface;
 
 /**
  * SagePay Form payment method.
@@ -42,29 +42,36 @@ class SagePayForm extends SagePayBase {
   }
 
   /**
-   * Update the Request object.
-   *
-   * In this case set the Return URL.
-   *
-   * @param \Omnipay\Common\Message\RequestInterface $request
-   *   The request object created for this payment.
+   * {@inheritdoc}
    */
-  public function preProcessRequest(RequestInterface &$request) {
-    $request->setReturnUrl($this
-      ->getPayment()
-      ->getPaymentType()
-      ->getReturnUrl()
-      ->toString()
-    );
+  public function getConfiguration() {
 
-    if (method_exists($this->getPayment()->getPaymentType(), 'getFailureUrl')) {
-      $request->setFailureUrl($this
-        ->getPayment()
-        ->getPaymentType()
-        ->getFailureUrl()
-        ->toString()
-      );
-    }
+    $configuration = parent::getConfiguration();
+
+    $configuration['returnUrl'] = Url::fromRoute(
+      'omnipay.sagepay.redirect.return',
+      [],
+      ['absolute' => TRUE, 'https' => TRUE]
+    )
+      ->toString();
+
+    return $configuration;
+  }
+
+  /**
+   * Generic extract the transaction reference.
+   *
+   * Return the internal Transaction Id as the Sage Pay one is not always
+   * available.
+   *
+   * @param \Omnipay\Common\Message\ResponseInterface $response
+   *   The returned response.
+   *
+   * @return string
+   *   The transaction reference.
+   */
+  public function getTransactionReference(ResponseInterface $response) {
+    return $response->getTransactionId();
   }
 
 }

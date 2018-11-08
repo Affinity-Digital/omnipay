@@ -581,4 +581,17 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    */
   public function preProcessRequest(RequestInterface &$request) {}
 
+  /**
+   * Allow the Payment Method access to the response object.
+   *
+   * @param mixed $response
+   *   The response object created for this payment.
+   *
+   * @return mixed
+   *   Update response object.
+   */
+  public function process($response) {
+    return $response;
+  }
+
 }

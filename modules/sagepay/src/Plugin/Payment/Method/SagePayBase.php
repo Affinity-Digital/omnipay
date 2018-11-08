@@ -58,7 +58,7 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    *   The returned response.
    *
    * @return string
-   *   The tranasction reference.
+   *   The transaction reference.
    */
   public function getTransactionReference(ResponseInterface $response) {
     $transaction_reference = Json::decode($response->getTransactionReference());

@@ -40,8 +40,10 @@ class SagePayServer extends SagePayDirect {
    *   Fully qualified URL of the redirection page handler.
    */
   public static function webhookUrl() {
-    $webhook = new Url('omnipay.sagepay.redirect.notify',
-      [], ['absolute' => TRUE]);
+    $webhook = new Url('omnipay.sagepay.redirect.return',
+      [],
+      ['absolute' => TRUE, 'https' => TRUE]
+    );
     return $webhook->toString(TRUE)->getGeneratedUrl();
   }
 

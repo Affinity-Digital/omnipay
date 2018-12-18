@@ -12,3 +12,10 @@ omnipay.sagepay.redirect.notify:
     _title: 'Sage Pay (Omnipay) Notify'
   requirements:
     _permission: 'access content'
+omnipay.sagepay.redirect.return:
+  path: '/omnipay/sagepay/redirect/return'
+  defaults:
+    _controller: 'Drupal\omnipay_sagepay\Controller\Redirect::execute'
+    _title: 'Sage Pay Form (Omnipay) Payment Redirect'
+  requirements:
+    _permission: 'access content'

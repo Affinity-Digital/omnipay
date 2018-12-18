@@ -17,7 +17,7 @@ Currently this uses the latest version of the developing 3.x library.
 # Naming conventions
 
 ## module namespace 
-Drupal\\omnipay__provider_\\...
+Drupal\\omnipay\__provider_\\...
 
 for example
 
@@ -27,7 +27,7 @@ namespace Drupal\omnipay_paypal\Plugin\Payment\Method;
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 ```
 
-## routing namespace path
+## routing path namespace
 /omnipay/_provider_/...
 
 for example
@@ -38,15 +38,26 @@ for example
   path: '/omnipay/sagepay/notify'
 ```
 
-## payment id namespace
-omnipay__provider__method_
+## payment method plugin id namespace
+omnipay\__provider_\__method_
 
 for example
 
 ```php
-  $id = "omnipay_paypal_rest",
+  id = "omnipay_paypal_rest",
 
-  $id = "omnipay_sagepay_server",
+  id = "omnipay_sagepay_server",
+```
+
+## payment method configuration plugin id namespace
+omnipay\__provider_\__method_
+
+for example
+
+```php
+  id = "omnipay_paypal_rest",
+
+  id = "omnipay_sagepay_server",
 ```
 
 # Generic Payment Method Configuration
@@ -78,18 +89,6 @@ Drupal\omnipay\Plugin\Payment\MethodConfiguration\OmnipayBasic
 
 ## composer.json
 Add the specific omnipay package to this module's composer.json
-
-### Omnipay Sagepay
-As this is using the development version of omnipay Sagepay, the following needs
-to be added to the root composer.json as the [pull request](https://github.com/thephpleague/omnipay-sagepay/pull/94)
-has not been actioned at the time of writing.
-
-```json
- {
-      "type" : "git",
-      "url" : "https://github.com/judgej/omnipay-sagepay"
- },
-```
 
 # Acknowledgements
 * The [Omnipay](https://omnipay.thephpleague.com/) library developers.

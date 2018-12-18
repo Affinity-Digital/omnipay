@@ -2,6 +2,8 @@
 
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 
+use Drupal\Core\Url;
+
 /**
  * SagePay Direct payment method.
  *
@@ -18,6 +20,42 @@ class SagePayDirect extends SagePayBase {
    */
   public function getGatewayName() {
     return 'SagePay_Direct';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getConfiguration() {
+
+    $configuration = parent::getConfiguration();
+
+    $configuration['notifyUrl'] = Url::fromRoute(
+      'omnipay.sagepay.redirect.notify',
+      [],
+      ['absolute' => TRUE, 'https' => TRUE]
+    )
+      ->toString();
+
+    return $configuration;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function doExecutePayment() {
+    $this->gateway->setReferrerId($this->getReferrerId());
+
+    parent::doExecutePayment();
+  }
+
+  /**
+   * Return the configured referrer id.
+   *
+   * @return string
+   *   Configured Referrer Id.
+   */
+  public function getReferrerId() {
+    return empty($this->getPluginDefinition()['referrerId']) ? '' : $this->getPluginDefinition()['referrerId'];
   }
 
 }

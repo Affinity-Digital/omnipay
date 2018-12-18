@@ -22,27 +22,4 @@ class SagePayServer extends SagePayDirect {
     return 'SagePay_Server';
   }
 
-  /**
-   * {@inheritdoc}
-   */
-  public function getConfiguration() {
-
-    $configuration = parent::getConfiguration();
-    $configuration['returnUrl'] = self::webhookUrl();
-
-    return $configuration;
-  }
-
-  /**
-   * Return the fully URL of the redirection page.
-   *
-   * @return string
-   *   Fully qualified URL of the redirection page handler.
-   */
-  public static function webhookUrl() {
-    $webhook = new Url('omnipay.sagepay.redirect.notify',
-      [], ['absolute' => TRUE]);
-    return $webhook->toString(TRUE)->getGeneratedUrl();
-  }
-
 }

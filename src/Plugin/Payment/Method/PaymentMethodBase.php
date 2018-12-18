@@ -20,6 +20,7 @@ use Omnipay\Common\Item;
 use Omnipay\Common\ItemBag;
 use Omnipay\Common\GatewayInterface;
 use Omnipay\Common\Message\RedirectResponseInterface;
+use Omnipay\Common\Message\RequestInterface;
 use Omnipay\Common\Message\ResponseInterface;
 use Omnipay\Omnipay;
 use Symfony\Component\DependencyInjection\ContainerInterface;
@@ -215,8 +216,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     $this->gateway->setTestMode(!$this->isProduction());
 
-    $description = $this->payment->label();
-    $description = (strlen($description) > 100) ? substr($description,0,97).'...' : $description;
+    $description = $this->preprocessDescription($this->payment->label());
 
     $configuration = $this->getConfiguration();
     $configuration['amount'] = $this->payment->getAmount();
@@ -228,8 +228,17 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $configuration['card'] = $this->getCard();
     }
 
+    // Throw an Exception before we call the function.
+    if (!$this->gateway->supportsPurchase()) {
+      throw new \Exception('Gateway does not support purchase()');
+    }
+
     /** @var \Omnipay\Common\Message\RequestInterface $request */
     $request = $this->gateway->purchase($configuration);
+
+    // Allow the Payment Method to change the request.
+    $this->preProcessRequest($request);
+
     // Not all gateways support send() so use sendData().
     $data = $request->getData();
     /** @var \Omnipay\Common\Message\ResponseInterface $response */
@@ -239,20 +248,22 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
       $response = $this->process($response);
     }
 
-    // Save some information.
-    $now = \Drupal::time()->getRequestTime();
-    $fields = [
-      'pid' => $this->getPayment()->id(),
-      'tid' => $configuration['transactionId'],
-      'tref' => $this->getPayment()->getPaymentMethod()->getTransactionReference($response),
-      'created' => $now,
-      'changed' => $now,
-    ];
-    $this
-      ->getConnection()
-      ->insert('omnipay')
-      ->fields($fields)
-      ->execute();
+    if ($tref = $this->getTransactionReference($response)) {
+      // Save some information.
+      $now = \Drupal::time()->getRequestTime();
+      $fields = [
+        'pid' => $this->getPayment()->id(),
+        'tid' => $configuration['transactionId'],
+        'tref' => $tref,
+        'created' => $now,
+        'changed' => $now,
+      ];
+      $this
+        ->getConnection()
+        ->insert('omnipay')
+        ->fields($fields)
+        ->execute();
+    }
 
     $this->setConfiguration($this->gateway->getParameters());
 
@@ -387,7 +398,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *   The returned response.
    *
    * @return string
-   *   The tranasction reference.
+   *   The transaction reference.
    */
   public function getTransactionReference(ResponseInterface $response) {
     $transaction_reference = $response->getTransactionReference();
@@ -442,13 +453,9 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *
    * @param string $production
    *   New Production value.
-   *
-   * @return \Drupal\omnipay\Plugin\Payment\MethodConfiguration\OmniPayBasic
-   *   Fluent interface.
    */
   public function setProduction($production) {
     $this->configuration['production'] = $production;
-    return $this;
   }
 
   /**
@@ -542,6 +549,53 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    *   The response from the online payment gateway.
    */
   public function updateConfiguration($response) {
+  }
+
+  /**
+   * Give the opportunity for the payment to process the payment description.
+   *
+   * @param string $description
+   *   Current payment description.
+   * @param null|int $limit
+   *   Optionally limit the description to this number of characters.
+   *
+   * @return bool|string
+   *   Optionally limited description string.
+   */
+  public function preprocessDescription($description, $limit = NULL) {
+    if ($limit) {
+      if (strlen($description) > $limit) {
+        $description = substr($description, 0, $limit - 3);
+        $last_space = strripos(' ', $description);
+        if ($last_space !== FALSE) {
+          $description = substr($description, 0, $last_space);
+        }
+        $description .= '...';
+      }
+    }
+
+    return $description;
+  }
+
+  /**
+   * Allow the Payment Method access to the request object.
+   *
+   * @param \Omnipay\Common\Message\RequestInterface $request
+   *   The request object created for this payment.
+   */
+  public function preProcessRequest(RequestInterface &$request) {}
+
+  /**
+   * Allow the Payment Method access to the response object.
+   *
+   * @param mixed $response
+   *   The response object created for this payment.
+   *
+   * @return mixed
+   *   Update response object.
+   */
+  public function process($response) {
+    return $response;
   }
 
 }

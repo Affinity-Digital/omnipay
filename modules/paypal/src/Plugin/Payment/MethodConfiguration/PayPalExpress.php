@@ -67,9 +67,8 @@ class PayPalExpress extends PayPalStandard {
     return ['Sole', 'Mark'];
   }
 
-    /**
+  /**
    * Gets the landing page of this configuration.
-   *
    *
    * @return array
    *   Configured border color.
@@ -86,18 +85,18 @@ class PayPalExpress extends PayPalStandard {
     parent::processBuildConfigurationForm($element, $form_state, $form);
 
     $element['paypal']['brandName'] = [
-    '#type' => 'textfield',
-    '#title' => $this->t('Brand name'),
-    '#default_value' => $this->getBrandName(),
-    '#maxlength' => 255,
-    '#required' => TRUE,
+      '#type' => 'textfield',
+      '#title' => $this->t('Brand name'),
+      '#default_value' => $this->getBrandName(),
+      '#maxlength' => 255,
+      '#required' => TRUE,
     ];
     $element['paypal']['headerImageUrl'] = [
-    '#type' => 'url',
-    '#title' => $this->t('Header Image URL'),
-    '#default_value' => $this->getHeaderImageUrl(),
-    '#maxlength' => 127,
-    '#description' => $this->t('URL for the image you want to appear at the top left of the payment page.')
+      '#type' => 'url',
+      '#title' => $this->t('Header Image URL'),
+      '#default_value' => $this->getHeaderImageUrl(),
+      '#maxlength' => 127,
+      '#description' => $this->t('URL for the image you want to appear at the top left of the payment page.')
       . '<br />'
       . $this->t('The image has a maximum size of 750 pixels wide by 90 pixels high.')
       . '<br />'
@@ -105,28 +104,27 @@ class PayPalExpress extends PayPalStandard {
       . '<br />'
       . $this->t('If you do not specify an image, the business name displays.')
       . '<br />'
-      . $this->t('Character length and limitations: 127 single-byte alphanumeric character')
+      . $this->t('Character length and limitations: 127 single-byte alphanumeric character'),
     ];
     $element['paypal']['logoImageUrl'] = [
-    '#type' => 'url',
-    '#title' => $this->t('Logo Image URL'),
-    '#default_value' => $this->getLogoImageUrl(),
-    '#maxlength' => 255,
-    '#description' => $this->t('URL for the image to appear above the order summary, in place of the brand name.')
+      '#type' => 'url',
+      '#title' => $this->t('Logo Image URL'),
+      '#default_value' => $this->getLogoImageUrl(),
+      '#maxlength' => 255,
+      '#description' => $this->t('URL for the image to appear above the order summary, in place of the brand name.')
       . '<br />'
       . $this->t('The recommended size is 190 pixels wide and 60 pixels high.'),
     ];
 
     $element['paypal']['borderColor'] = [
-    '#type' => 'textfield',
-    '#title' => $this->t('Border Color'),
-    '#default_value' => $this->getBorderColor(),
-    '#maxlength' => 6,
-    '#description' => $this->t('The color of the border gradient on payment pages.')
+      '#type' => 'textfield',
+      '#title' => $this->t('Border Color'),
+      '#default_value' => $this->getBorderColor(),
+      '#maxlength' => 6,
+      '#description' => $this->t('The color of the border gradient on payment pages.')
       . '<br />'
       . $this->t('Should be a six character hexadecimal code (i.e. C0C0C0).'),
     ];
-
 
     return $element;
   }

@@ -19,7 +19,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    */
   public function doExecutePayment() {
     $this->gateway->setVendor($this->getVendorName());
-    $this->gateway->setReferrerId($this->getReferrerId());
 
     parent::doExecutePayment();
   }
@@ -39,13 +38,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
       }
     }
 
-    $configuration['notifyUrl'] = Url::fromRoute(
-      'omnipay.sagepay.redirect.notify',
-      [],
-      ['absolute' => TRUE, 'https' => TRUE]
-    )
-      ->toString();
-
     return $configuration;
   }
 
@@ -60,16 +52,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
   }
 
   /**
-   * Return the configured referrer id.
-   *
-   * @return string
-   *   Configured Referrer Id.
-   */
-  public function getReferrerId() {
-    return empty($this->getPluginDefinition()['referrerId']) ? '' : $this->getPluginDefinition()['referrerId'];
-  }
-
-  /**
    * Generic extract the transaction reference.
    *
    * The transaction reference is a JSON encoded string.
@@ -79,11 +61,43 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    *   The returned response.
    *
    * @return string
-   *   The tranasction reference.
+   *   The transaction reference.
    */
   public function getTransactionReference(ResponseInterface $response) {
     $transaction_reference = Json::decode($response->getTransactionReference());
     return $transaction_reference['VPSTxId'];
+  }
+
+  /**
+   * Update the configuration based upon the response.
+   *
+   * @param \Omnipay\Common\Message\RedirectResponseInterface|\Omnipay\Common\Message\ResponseInterface $response
+   *   The response object.
+   *
+   * @throws \Drupal\Core\Entity\EntityStorageException
+   */
+  public function updateConfiguration($response) {
+    if ($transaction_reference = Json::decode($response->getTransactionReference())) {
+      foreach ($transaction_reference as $key => $value) {
+        $this->configuration[$key] = $value;
+      }
+      $this->getPayment()->save();
+    }
+  }
+
+  /**
+   * Limits the description text to 100 characters or less.
+   *
+   * @param string $description
+   *   Current description string.
+   * @param int $limit
+   *   Optional description character limit.
+   *
+   * @return mixed
+   *   New description string
+   */
+  public function preprocessDescription($description, $limit = 100) {
+    return parent::preprocessDescription($description, $limit);
   }
 
   /**
@@ -94,20 +108,6 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    */
   public function needCard() {
     return TRUE;
-  }
-
-  /**
-   * Update the configuration based upon the response.
-   *
-   * @param \Omnipay\Common\Message\ResponseInterface $response
-   *   The response object.
-   */
-  public function updateConfiguration($response) {
-    $transaction_reference = Json::decode($response->getTransactionReference());
-    foreach ($transaction_reference as $key => $value) {
-      $this->configuration[$key] = $value;
-    }
-    $this->getPayment()->save();
   }
 
   /**

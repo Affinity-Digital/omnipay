@@ -11,8 +11,10 @@ use Http\Adapter\Guzzle6\Client;
 use Omnipay\Common\GatewayFactory;
 use Omnipay\Common\Http\Client as OmnipayClient;
 use Omnipay\Common\Http\ClientInterface;
+use Omnipay\SagePay\ConstantsInterface as SagePayConstants;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * Handles the "webhook" route.
@@ -27,13 +29,26 @@ class Webhook extends ControllerBase {
   protected $connection;
 
   /**
-   * Construct the class using passed paramters.
+   * Client object.
    *
-   * @param \Drupal\Core\Database\Connection $connection
-   *   Database connection object.
+   * @var \Omnipay\Common\Http\ClientInterface
    */
-  public function __construct(Connection $connection) {
+  protected $client;
+
+  /**
+   * Construct the class using passed parameters.
+   *
+   * @param \Omnipay\Common\Http\ClientInterface $http_client
+   *   The HTTP client.
+   * @param \Drupal\Core\Database\Connection $connection
+   *   The current Database connection.
+   */
+  public function __construct(
+    ClientInterface $http_client,
+    Connection $connection
+  ) {
     $this->setConnection($connection);
+    $this->setClient($http_client);
   }
 
   /**
@@ -46,7 +61,21 @@ class Webhook extends ControllerBase {
    *   Instance of this object to use.
    */
   public static function create(ContainerInterface $container) {
-    return new static(\Drupal::database());
+    $containerClient = $container->get('http_client');
+
+    // Onmipay 3.x Client class is \Omnipay\Common\Http\ClientInterface.
+    if ($containerClient instanceof ClientInterface) {
+      $client = $containerClient;
+    }
+    else {
+      $config = $containerClient->getConfig();
+      $client = new OmnipayClient(Client::createWithConfig($config));
+    }
+
+    return new static(
+      $client,
+      \Drupal::database()
+    );
   }
 
   /**
@@ -70,6 +99,26 @@ class Webhook extends ControllerBase {
   }
 
   /**
+   * Return the current client to use.
+   *
+   * @return \Omnipay\Common\Http\ClientInterface
+   *   Requested client connection to use.
+   */
+  public function getClient() {
+    return $this->client;
+  }
+
+  /**
+   * Set the database connection object.
+   *
+   * @param \Omnipay\Common\Http\ClientInterface $client
+   *   Client to use.
+   */
+  public function setClient(ClientInterface $client) {
+    $this->client = $client;
+  }
+
+  /**
    * Determine if access is allowed.
    *
    * @param \Drupal\payment\Entity\PaymentInterface $payment
@@ -86,9 +135,7 @@ class Webhook extends ControllerBase {
    * {@inheritdoc}
    */
   private function verify(PaymentInterface $payment) {
-    /** @var \Drupal\omnipay_sagepay\Plugin\Payment\Method\SagePayBasic $payment_method */
-    $payment_method = $payment->getPaymentMethod();
-    return $payment->getOwnerId() == \Drupal::currentUser()->id();
+    return $payment->getOwnerId() == $this->currentUser()->id();
   }
 
   /**
@@ -101,6 +148,9 @@ class Webhook extends ControllerBase {
    *   The request from Sage Pay.
    * @param \Drupal\payment\Entity\PaymentInterface $payment
    *   The payment that is being worked on.
+   *
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   Replies with a response object.
    */
   public function finished(Request $request, PaymentInterface $payment) {
     return $payment->getPaymentType()->getResumeContextResponse()->getResponse();
@@ -112,22 +162,15 @@ class Webhook extends ControllerBase {
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   Request structure.
    *
-   * @return \Symfony\Component\HttpFoundation\RedirectResponse
-   *   Where to redirect to.
+   * @return \Symfony\Component\HttpFoundation\Response
+   *   Replies to Sage Pay with expected information.
+   *
+   * @throws \Drupal\Component\Plugin\Exception\InvalidPluginDefinitionException
+   * @throws \Drupal\Component\Plugin\Exception\PluginNotFoundException
+   * @throws \Drupal\Core\Entity\EntityStorageException
    */
   public function notify(Request $request) {
-    $containerClient = \Drupal::service('http_client');
-
-    // Onmipay 3.x Client class is \Omnipay\Common\Http\ClientInterface.
-    if ($containerClient instanceof ClientInterface) {
-      $client = $containerClient;
-    }
-    else {
-      // Create a new instance and use the passed instance's configuration.
-      $config = $containerClient->getConfig();
-      $client = new OmnipayClient(Client::createWithConfig($config));
-    }
-
+    $client = $this->getClient();
     $gatewayFactory = new GatewayFactory();
 
     /** @var \Omnipay\SagePay\ServerGateway $gateway */
@@ -174,46 +217,48 @@ class Webhook extends ControllerBase {
         /** @var \Omnipay\SagePay\Message\ServerNotifyRequest $sagepay */
         $sagepay = $gateway->acceptNotification($parameters);
 
-        $status = 'INVALID';
+        $status = SagePayConstants::SAGEPAY_STATUS_INVALID;
         if ($sagepay->isValid()) {
-          $status = 'OK';
+          $status = SagePayConstants::SAGEPAY_STATUS_OK;
           switch ($sagepay->getStatus()) {
             // If the transaction was authorised.
-            case 'OK':
+            case SagePayConstants::SAGEPAY_STATUS_OK:
               $payment
                 ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_success')
                 )
                 ->save();
               break;
-              // (for European Payment Types only), if the transaction
-              // ... has yet to be accepted or rejected.
-            case 'PENDING':
+
+            // (for European Payment Types only), if the transaction
+            // ... has yet to be accepted or rejected.
+            case SagePayConstants::SAGEPAY_STATUS_PENDING:
               $payment
                 ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_pending')
                 )
                 ->save();
               break;
-              
-              // If the user decided to cancel the transaction whilst
-              // ... on our payment pages.
-            case 'ABORT':
+
+            // If the user decided to cancel the transaction whilst
+            // ... on our payment pages.
+            case SagePayConstants::SAGEPAY_STATUS_ABORT:
               $payment
                 ->setPaymentStatus(
                   Payment::statusManager()->createInstance('payment_cancelled')
                 )
                 ->save();
               break;
+
             // If the authorisation was failed by the bank.
-            case 'NOTAUTHED':
+            case SagePayConstants::SAGEPAY_STATUS_NOTAUTHED:
 
               // If your fraud screening rules were not met.
-            case 'REJECTED':
+            case SagePayConstants::SAGEPAY_STATUS_REJECTED:
               // If an error has occurred at Sage Pay.
               // These are very infrequent, but your site should handle them
               // anyway. They normally indicate a problem with bank connectivity.
-            case 'ERROR':
+            case SagePayConstants::SAGEPAY_STATUS_ERROR:
             default:
               $this
                 ->getLogger('omnipay_sagepay_payment')
@@ -238,8 +283,8 @@ class Webhook extends ControllerBase {
       ['absolute' => TRUE, 'https' => TRUE]
     );
     $content = 'Status=' . $status . PHP_EOL . 'RedirectURL=' . $redirection->getTargetUrl();
-    echo $content;
-    exit;
+
+    return new Response($content);
   }
 
 }

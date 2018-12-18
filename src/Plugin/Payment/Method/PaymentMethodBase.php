@@ -6,7 +6,6 @@ use Drupal\Core\Database\Connection;
 use Drupal\Core\Extension\ModuleHandlerInterface;
 use Drupal\Core\Url;
 use Drupal\Core\Utility\Token;
-use Drupal\omnipay\Response\GenericResponseWrapper;
 use Drupal\payment\EventDispatcherInterface;
 use Drupal\payment\OperationResult;
 use Drupal\payment\OperationResultInterface;
@@ -48,7 +47,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
   /**
    * Execution Result.
    *
-   * @var \Drupal\Core\Database\Connection
+   * @var mixed
    */
   protected $paymentExecutionResult = NULL;
 
@@ -218,7 +217,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
 
     $description = $this->payment->label();
     $description = (strlen($description) > 100) ? substr($description,0,97).'...' : $description;
-    
+
     $configuration = $this->getConfiguration();
     $configuration['amount'] = $this->payment->getAmount();
     $configuration['description'] = $description;
@@ -260,7 +259,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
     $this->updateConfiguration($response);
 
     if ($response->isRedirect() && $response instanceof RedirectResponseInterface) {
-      $this->paymentExecutionResult = $response;
+      $this->setPaymentExecutionResult($response, $request);
       $response->redirect();
     }
     else {
@@ -290,18 +289,23 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
         ->getPaymentType()
         ->getResumeContextResponse();
     }
-    $this->paymentExecutionResult = $response;
+    $this->setPaymentExecutionResult($response, $request);
   }
 
   /**
    * {@inheritdoc}
    */
   public function getPaymentExecutionResult() {
-    if (is_subclass_of($this->paymentExecutionResult, 'Drupal\payment\Response\ResponseInterface') ) {
-      return new OperationResult($this->paymentExecutionResult);
-    }
+    return new OperationResult($this->paymentExecutionResult);
+  }
 
-    return new OperationResult(new GenericResponseWrapper($this->paymentExecutionResult));
+  /**
+   * Store the response from request.
+   *
+   * @param mixed $response
+   */
+  public function setPaymentExecutionResult($response, $request) {
+    $this->paymentExecutionResult = $response;
   }
 
   /**

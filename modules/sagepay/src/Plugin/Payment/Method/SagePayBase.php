@@ -2,10 +2,12 @@
 
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 
-use Drupal\Core\Url;
 use Drupal\omnipay\Plugin\Payment\Method\GatewayFactoryAbstractPaymentMethodBase;
 use Drupal\Component\Serialization\Json;
+use Drupal\Core\Url;
+use Drupal\payment\Response\Response as PaymentResponse;
 use Omnipay\Common\Message\ResponseInterface;
+use Symfony\Component\HttpFoundation\Response;
 
 /**
  * SagePay Base payment method.
@@ -106,6 +108,43 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
       $this->configuration[$key] = $value;
     }
     $this->getPayment()->save();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function setPaymentExecutionResult($response, $request) {
+    $url = '';
+    $status = 200;
+    $headers = [];
+
+    if ($response->isRedirect()) {
+      $url = $response->getRedirectUrl();
+      $status = Response::HTTP_FOUND;
+      $content = $response->getRedirectData();
+      if (is_array($content)) {
+        $lines = [];
+        foreach ($content as $key => $value) {
+          $lines[] = $key . '=' . $value;
+        }
+        $content = \implode("\n", $lines);
+      }
+    }
+    else {
+      $content = $response->getData();
+      if (is_array($content)) {
+        $lines = [];
+        foreach ($content as $key => $value) {
+          $lines[] = $key . '=' . $value;
+        }
+        $content = \implode("\n", $lines);
+      }
+    }
+
+    $this->paymentExecutionResult = new PaymentResponse(
+        Url::fromUri($url),
+        new Response($content, $status, $headers)
+    );
   }
 
 }

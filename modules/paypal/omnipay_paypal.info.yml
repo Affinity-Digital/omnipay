@@ -1,6 +1,6 @@
 name: Pay Pal (Omnipay)
 description: Provides Pay Pal payment methods using the Omnipay library.
-core: 8.x || ^9
+core_version_requirement: 8.x || ^9
 type: module
 package: Payment
 dependencies:

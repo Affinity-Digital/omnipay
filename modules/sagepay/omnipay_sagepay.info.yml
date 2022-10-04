@@ -1,6 +1,6 @@
 name: Sage Pay (Omnipay)
 description: Provides Sage Pay payment methods using the Omnipay library.
-core_version_requirement: 9^ || ^10
+core_version_requirement: 8.x || ^9
 type: module
 package: Payment
 dependencies:

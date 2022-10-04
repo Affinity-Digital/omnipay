@@ -4,14 +4,14 @@
     "description": "Omnipay Payment Gateways",
     "keywords": ["Drupal"],
     "license": "GPL-2.0+",
-    "homepage": "https://github.com/Affinity-Digital/omnipay",
+    "homepage": "https://www.drupal.org/project/omnipay",
     "minimum-stability": "dev",
     "support": {
-        "issues": "https://github.com/Affinity-Digital/omnipay/issues",
-        "source": "https://github.com/Affinity-Digital/omnipay"
+        "issues": "https://www.drupal.org/project/issues/omnipay",
+        "source": "http://cgit.drupalcode.org/omnipay"
     },
     "require" : {
-        "omnipay/paypal" : "^3",
-        "omnipay/sagepay" : "^4"
+        "omnipay/paypal" : "^3.0",
+        "omnipay/sagepay" : "^3.2"
   }
 }

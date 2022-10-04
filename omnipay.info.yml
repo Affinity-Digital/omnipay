@@ -1,7 +1,7 @@
 name: Omnipay
 description: Provides payment methods using the Omnipay library.
-core: 8.x
+core_version_requirement: ^9 || ^10
 type: module
 package: Payment
 dependencies:
-  - payment
+  - payment:payment

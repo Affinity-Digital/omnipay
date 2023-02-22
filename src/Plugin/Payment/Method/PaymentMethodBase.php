@@ -314,6 +314,7 @@ abstract class PaymentMethodBase extends GenericPaymentMethodBase {
    * Store the response from request.
    *
    * @param mixed $response
+   * @param mixed $request
    */
   public function setPaymentExecutionResult($response, $request) {
     $this->paymentExecutionResult = $response;

@@ -117,11 +117,13 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
     $url = '';
     $status = 200;
     $headers = [];
-
-    if ($response->isRedirect()) {
+    /** @var \Drupal\payment\Response\Response $response */
+    /** @var \Drupal\Core\Routing\TrustedRedirectResponse $reply */
+    $reply = $response->getResponse();
+    if ($reply->isRedirect()) {
       $url = $response->getRedirectUrl();
       $status = Response::HTTP_FOUND;
-      $content = $response->getRedirectData();
+      $content = $reply->getContent();
       if (is_array($content)) {
         $lines = [];
         foreach ($content as $key => $value) {
@@ -131,7 +133,7 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
       }
     }
     else {
-      $content = $response->getData();
+      $content = $reply->getContent();
       if (is_array($content)) {
         $lines = [];
         foreach ($content as $key => $value) {
@@ -142,7 +144,7 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
     }
 
     $this->paymentExecutionResult = new PaymentResponse(
-        Url::fromUri($url),
+        $url,
         new Response($content, $status, $headers)
     );
   }

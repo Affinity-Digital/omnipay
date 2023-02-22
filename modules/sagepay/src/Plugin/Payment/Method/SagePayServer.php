@@ -2,7 +2,8 @@
 
 namespace Drupal\omnipay_sagepay\Plugin\Payment\Method;
 
-use Drupal\Core\Url;
+use Omnipay\Common\Message\RequestInterface;
+use Omnipay\SagePay\Message\AbstractRequest;
 
 /**
  * SagePay Server payment method.
@@ -20,6 +21,14 @@ class SagePayServer extends SagePayDirect {
    */
   public function getGatewayName() {
     return 'SagePay_Server';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function preProcessRequest(RequestInterface &$request) {
+    /** @var  \Omnipay\SagePay\Message\AbstractRequest $request */
+    $request->setProfile(AbstractRequest::PROFILE_NORMAL);
   }
 
 }

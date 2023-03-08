@@ -117,12 +117,12 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
 
     // Set some default values for the payment execution result.
     $url = '';
-    $status = 200;
+    $status = Response::HTTP_OK;
     $headers = [];
 
     // Check if instance of \Omnipay\SagePay\Message\ServerAuthorizeResponse.
-    /** @var \Drupal\payment\Response\Response $response */
     if($response instanceof \Omnipay\SagePay\Message\ServerAuthorizeResponse) {
+      /** @var \Omnipay\SagePay\Message\ServerAuthorizeResponse */
       // Check if the response is a redirect.
       if ($response->isRedirect()) {
         // If the response is a redirect, set the redirect URL and status.
@@ -144,8 +144,9 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
     }
     else {
 
-      // If the response is not a redirect, get the response object.
+      /** @var \Drupal\payment\Response\Response $response */
       /** @var \Drupal\Core\Routing\TrustedRedirectResponse $reply */
+      // If the response is not a redirect, get the response object.
       $reply = $response->getResponse();
 
       // Get the content of the response and format it as a string.

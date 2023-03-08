@@ -114,16 +114,26 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
    * {@inheritdoc}
    */
   public function setPaymentExecutionResult($response, $request) {
+
+    // Set some default values for the payment execution result.
     $url = '';
-    $status = 200;
+    $status = Response::HTTP_OK;
     $headers = [];
-    /** @var \Drupal\payment\Response\Response $response */
-    /** @var \Drupal\Core\Routing\TrustedRedirectResponse $reply */
-    $reply = $response->getResponse();
-    if ($reply->isRedirect()) {
-      $url = $response->getRedirectUrl();
-      $status = Response::HTTP_FOUND;
-      $content = $reply->getContent();
+
+    // Check if instance of \Omnipay\SagePay\Message\ServerAuthorizeResponse.
+    if($response instanceof \Omnipay\SagePay\Message\ServerAuthorizeResponse) {
+      /** @var \Omnipay\SagePay\Message\ServerAuthorizeResponse */
+      // Check if the response is a redirect.
+      if ($response->isRedirect()) {
+        // If the response is a redirect, set the redirect URL and status.
+        $url =  Url::fromUri($response->getRedirectUrl());
+        $status = Response::HTTP_FOUND;
+        // Get the redirect data and format it as a string.
+        $content = $response->getRedirectData();
+      }
+      else {
+        $content = $response->getData();
+      }
       if (is_array($content)) {
         $lines = [];
         foreach ($content as $key => $value) {
@@ -133,6 +143,13 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
       }
     }
     else {
+
+      /** @var \Drupal\payment\Response\Response $response */
+      /** @var \Drupal\Core\Routing\TrustedRedirectResponse $reply */
+      // If the response is not a redirect, get the response object.
+      $reply = $response->getResponse();
+
+      // Get the content of the response and format it as a string.
       $content = $reply->getContent();
       if (is_array($content)) {
         $lines = [];
@@ -143,6 +160,7 @@ abstract class SagePayBase extends GatewayFactoryAbstractPaymentMethodBase {
       }
     }
 
+    // Create a new payment response object using the URL, status, and content.
     $this->paymentExecutionResult = new PaymentResponse(
         $url,
         new Response($content, $status, $headers)
